@@ -54,7 +54,30 @@ public class MappingModifier : Controller
         {
             return BadRequest();
         }
-        _db.Mappings.Update(mapping);
+        _db.Mappings.Update(m);
+        _db.SaveChanges();
+        return Ok();
+    }
+    
+    [HttpPost("{id:guid}/password")]
+    public IActionResult Update([FromRoute] Guid id, [FromBody] LoginRequest request)
+    {
+        Mapping? m = _db.Mappings.FirstOrDefault(x => x.Id == id);
+        if (m == null) return NotFound();
+        m.PasswordSalt = BCrypt.Net.BCrypt.GenerateSalt();
+        m.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, m.PasswordSalt);
+        _db.Mappings.Update(m);
+        _db.SaveChanges();
+        return Ok();
+    }
+    
+    [HttpDelete("{id:guid}/password")]
+    public IActionResult Update([FromRoute] Guid id)
+    {
+        Mapping? m = _db.Mappings.FirstOrDefault(x => x.Id == id);
+        if (m == null) return NotFound();
+        m.PasswordHash = null;
+        _db.Mappings.Update(m);
         _db.SaveChanges();
         return Ok();
     }

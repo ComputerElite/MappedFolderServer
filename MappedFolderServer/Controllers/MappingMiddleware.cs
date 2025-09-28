@@ -36,7 +36,7 @@ public class TenantController : Controller
             if (!unlocked)
             {
                 // redirect to password prompt
-                return Redirect($"/enter-password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/slugs/{slug}/{subpath}")}");
+                return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/slugs/{slug}/{subpath}")}");
             }
         }
 

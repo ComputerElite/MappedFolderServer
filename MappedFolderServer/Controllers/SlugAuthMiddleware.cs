@@ -39,7 +39,7 @@ public class SlugAuthController : Controller
         var entry = _db.Mappings.FirstOrDefault(p => p.Slug == slug);
         if (entry == null) return NotFound();
 
-        if (!BCrypt.Net.BCrypt.Verify(login.Password + entry.PasswordSalt, entry.PasswordHash))
+        if (!BCrypt.Net.BCrypt.Verify(login.Password, entry.PasswordHash))
         {
             return Unauthorized();
         }

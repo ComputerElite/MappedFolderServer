@@ -22,7 +22,13 @@
             <div class="whenExisting">
                 <br>
                 <br>
-                <button class="whenExisting">Delete</button>
+                <label for="newPassword"><input type="password" placeholder="new password" id="newPassword"></label>
+                <label for="newPasswordConfirm"><input type="password" placeholder="confirm new password" id="newPasswordConfirm"></label>
+                <button onclick="changePassword()">Change password</button>
+                <button onclick="deletePassword()">Clear password</button>
+                <br>
+                <br>
+                <button>Delete</button>
             </div>
             
         </div>
@@ -32,11 +38,33 @@
         const slugName = document.getElementById('slug-name')
         const slugFolder = document.getElementById('slug-folder')
         const slugPublic = document.getElementById('slug-public')
+        const newPassword = document.getElementById('newPassword')
+        const newPasswordConfirm = document.getElementById('newPasswordConfirm')
         const popup = document.getElementById('popup')
         let slug_list = []
         let currently_editing = null
         
         loadSlugs()
+        
+        function changePassword() {
+            if(newPassword.value !== newPasswordConfirm.value) {
+                alert("Passwords do not match!")
+                return;
+            }
+            fetch(`/api/v1/slugs/${currently_editing.id}/password`, {method: 'POST', headers: {"content-type": "application/json"}, body: JSON.stringify({"password": newPassword.value})}).then(response => {
+                if (response.ok) {
+                    alert("Password cleared!")
+                }
+            })
+        }
+        
+        function deletePassword() {
+            fetch(`/api/v1/slugs/${currently_editing.id}/password`, {method: 'DELETE'}).then(response => {
+                if (response.ok) {
+                    alert("Password cleared!")
+                }
+            })
+        }
 
         function save() {
             const slug = {
@@ -45,13 +73,12 @@
                 slug: slugName.value,
                 id: currently_editing.Id
             }
-            fetch(`api/v1/slugs/${currently_editing.Id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
-                if(respose.ok) {
+            fetch(`api/v1/slugs/${currently_editing.id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                if(response.ok) {
                     closePopup()
                     loadSlugs()
                 } else {
                     alert("An error occurred while creating")
-
                 }
             })
         }
@@ -61,7 +88,7 @@
                 isPublic: slugPublic.checked == true
             }
             fetch("api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
-                if(respose.ok) {
+                if(response.ok) {
                     closePopup()
                     loadSlugs()
                 } else {
