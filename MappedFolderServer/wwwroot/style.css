@@ -1,0 +1,37 @@
+:root {
+    --error-color: #ff0000;
+    --error-text: #000000;
+    --border-radius: 3px;
+    --small-padding: 5px;
+    --popup-color: #444444;
+}
+
+.error-box {
+    background-color: var(--error-color);
+    color: var(--error-text);
+    border-radius:  var(--border-radius);
+    padding: var(--small-padding);
+}
+
+.hidden {
+    display: none;
+}
+
+.popup {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color:#00000033
+}
+
+.popup-content {
+    background-color: var(--popup-color);
+    position: absolute;
+    left: 50vw;
+    top:  50vh;
+    transform: translate(-50%, -50%);
+    border-radius:  var(--border-radius);
+    padding: var(--small-padding);
+}

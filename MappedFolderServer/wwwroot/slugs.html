@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/style.css">
+    <title>Edit slugs</title>
+</head>
+<body>
+    <h1>Slugs</h1>
+    <table id="slugs">
+        
+    </table>
+    <button onclick="newSlug()">New Slug</button>
+    <div class="popup hidden" id="popup">
+        <div class="popup-content">
+            <label class="whenExisting" for="slug-name">Slug<input id="slug-name" type="text"></label><br>
+            <label for="slug-folder">Folder<input id="slug-folder" type="text"></label><br>
+            <label for="slug-public"><input id="slug-public" type="checkbox">Public</label><br>
+            <button onclick="closePopup()">Cancel</button>
+            <button onclick="save()" class="whenExisting">Save</button>
+            <button onclick="create()" class="whenNew">Create</button>
+            <div class="whenExisting">
+                <br>
+                <br>
+                <button class="whenExisting">Delete</button>
+            </div>
+            
+        </div>
+    </div>
+    <script>
+        const slugs = document.getElementById('slugs')
+        const slugName = document.getElementById('slug-name')
+        const slugFolder = document.getElementById('slug-folder')
+        const slugPublic = document.getElementById('slug-public')
+        const popup = document.getElementById('popup')
+        let slug_list = []
+        let currently_editing = null
+        
+        loadSlugs()
+
+        function save() {
+            const slug = {
+                folderPath: slugFolder.value,
+                isPublic: slugPublic.checked == true,
+                slug: slugName.value,
+                id: currently_editing.Id
+            }
+            fetch(`api/v1/slugs/${currently_editing.Id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                if(respose.ok) {
+                    closePopup()
+                    loadSlugs()
+                } else {
+                    alert("An error occurred while creating")
+
+                }
+            })
+        }
+        function create() {
+            const slug = {
+                folderPath: slugFolder.value,
+                isPublic: slugPublic.checked == true
+            }
+            fetch("api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                if(respose.ok) {
+                    closePopup()
+                    loadSlugs()
+                } else {
+                    alert("An error occurred while creating")
+                    
+                }
+            })
+        }
+        
+        function closePopup() {
+            popup.style.display = 'none';
+        }
+        
+        function applyDisplay(className, display) {
+            for(const e of document.getElementsByClassName(className)) {
+                e.style.display = display;
+            }
+        }
+        
+        function openPopup() {
+            popup.style.display = 'block';
+            if(!currently_editing) {
+                currently_editing = {folderPath: "", slug: "", isPublic: false, id: null}
+                applyDisplay("whenExisting", "none")
+                applyDisplay("whenNew", "block")
+            } else {
+
+                applyDisplay("whenExisting", "block")
+                applyDisplay("whenNew", "none")
+            }
+            slugName.value = currently_editing.slug;
+            slugFolder.value = currently_editing.folderPath;
+            slugPublic.checked = currently_editing.isPublic;
+        }
+
+        function updateView() {
+            let filteredSlugs = slug_list
+            let html = `<tr><th>Slug</th><th>Path</th><th>Public?</th><th>Password Set?</th><th>Actions</th></tr>`
+            for(const slug of filteredSlugs) {
+                html += `<tr>
+<td>${slug.slug}</td>
+<td>${slug.folderPath}</td>
+<td>${slug.isPublic ? "Yes" : "No"}</td>
+<td>${slug.passwordSet ? "Yes" : "No"}</td>
+<td>
+    <button onclick="editSlug('${slug.id}')">Edit</button>
+</td>
+</tr>`
+            }
+            slugs.innerHTML = html
+        }
+        
+        function newSlug() {
+            currently_editing = null
+            openPopup()
+        }
+        
+        function editSlug(id) {
+            for(const slug of slug_list) {
+                if(slug.id === id) {
+                    currently_editing = slug
+                    openPopup()
+                }
+            }
+        }
+        
+        function loadSlugs() {
+            fetch("/api/v1/slugs/all").then(response => {
+                response.json().then(data => {
+                    slug_list = data
+                    updateView()
+                })
+            })
+        }
+    </script>
+</body>
+</html>

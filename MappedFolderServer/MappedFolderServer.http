@@ -1,0 +1,6 @@
+@MappedFolderServer_HostAddress = http://localhost:5021
+
+GET {{MappedFolderServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

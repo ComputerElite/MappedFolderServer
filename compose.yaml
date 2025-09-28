@@ -1,0 +1,7 @@
+﻿services:
+  mappedfolderserver:
+    image: mappedfolderserver
+    build:
+      context: .
+      dockerfile: MappedFolderServer/Dockerfile
+
