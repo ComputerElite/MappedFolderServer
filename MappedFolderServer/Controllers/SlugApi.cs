@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MappedFolderServer.Controllers;
 
 [Route("api/v1/slugs")]
-[Authorize(Policy = "Admin")]
+[Authorize(AuthenticationSchemes = "oidc")]
 public class SlugApi : Controller
 {
     private readonly IWebHostEnvironment _env;
@@ -29,12 +29,12 @@ public class SlugApi : Controller
     {
         if (!Directory.Exists(slugEntry.FolderPath))
         {
-            return BadRequest();
+            return BadRequest(new ApiError("Requested directory doesn't exist"));
         }
         
         if (_db.Mappings.Any(x => x.Slug == slugEntry.Slug))
         {
-            return BadRequest();
+            return BadRequest(new ApiError("Slug already exists, please choose a different slug"));
         }
         
         _db.Mappings.Add(slugEntry);

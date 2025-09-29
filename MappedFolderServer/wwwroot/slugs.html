@@ -6,6 +6,10 @@
     <title>Edit slugs</title>
 </head>
 <body>
+    <h1>Me</h1>
+    <div id="me">
+        Loading
+    </div>
     <h1>Slugs</h1>
     <table id="slugs">
         
@@ -40,11 +44,36 @@
         const slugPublic = document.getElementById('slug-public')
         const newPassword = document.getElementById('newPassword')
         const newPasswordConfirm = document.getElementById('newPasswordConfirm')
+        const me = document.getElementById('me')
         const popup = document.getElementById('popup')
+        let me_data = null
         let slug_list = []
         let currently_editing = null
         
+        whoAmI()
         loadSlugs()
+        
+        function showMe() {
+            if(!me_data) {
+                me.innerHTML = `<p>You're not logged in</p>`
+                return;
+            }
+
+            me.innerHTML = `<p>Logged in as: ${me_data.name}<br>IsAdmin: ${me_data.isAdmin}</p>`
+        }
+        
+        function whoAmI() {
+            fetch("/api/v1/me/db").then(res => {
+                if(!res.ok) {
+                    showMe()
+                    return
+                }
+                res.json().then(data => {
+                    me_data = data
+                    showMe()
+                })
+            })
+        }
         
         function deleteSlug() {
             if(!confirm(`Are you sure you want to delete the slug '${currently_editing.slug}':'${currently_editing.folderPath}'?`))
@@ -143,7 +172,7 @@
             let html = `<tr><th>Slug</th><th>Path</th><th>Public?</th><th>Password Set?</th><th>Actions</th></tr>`
             for(const slug of filteredSlugs) {
                 html += `<tr>
-<td>${slug.slug}</td>
+<td><a href="${location.href.replace(location.pathname, "")}/${slug.slug}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>
 <td>${slug.isPublic ? "Yes" : "No"}</td>
 <td>${slug.passwordSet ? "Yes" : "No"}</td>

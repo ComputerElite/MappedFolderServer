@@ -3,6 +3,7 @@ using System;
 using MappedFolderServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MappedFolderServer.Migrations
 {
     [DbContext(typeof(AppDatabaseContext))]
-    partial class AppDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250929143601_add_users")]
+    partial class add_users
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -44,9 +47,6 @@ namespace MappedFolderServer.Migrations
                     b.Property<Guid?>("AuthenticatedSessionId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("FolderPath")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -65,11 +65,16 @@ namespace MappedFolderServer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthenticatedSessionId");
 
                     b.HasIndex("Slug");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Mappings");
                 });

@@ -12,9 +12,22 @@ public class Config
     public string ServedDirectory { get; set; } = "/serve/";
     public string FrontendUrl { get; set; } = "http://192.168.178.24/";
 
-    public void PopulateFromEnvironment()
+    public bool UseOAuth { get; set; } = false;
+    public string OAuthAuthority { get; set; } = "";
+    public string OAuthClientId { get; set; } = "";
+    public string OAuthClientSecret { get; set; } = "";
+    
+    public string OAuthAdminRole { get; set; } = "mfs-admin";
+    
+    
+    // FOR TESTING ONLY
+    // Disabled when UseOAuth is true
+    public string AdminUser { get; set; } = "admin";
+    public string AdminPassword { get; set; } = "admin";
+
+    public static void GetFromEnvironment()
     {
-        EnvBinder.PopulateFromEnvironment(this);
-        Instance = this;
+        Instance = new Config();
+        EnvBinder.PopulateFromEnvironment(Instance);
     }
 }
