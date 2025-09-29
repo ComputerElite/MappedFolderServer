@@ -4,7 +4,7 @@ namespace MappedFolderServer.Data;
 
 public class AppDatabaseContext : DbContext
 {
-    public DbSet<Mapping>  Mappings { get; set; }
+    public DbSet<SlugEntry>  Mappings { get; set; }
     public DbSet<AuthenticatedSession> Sessions { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

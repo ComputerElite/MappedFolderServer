@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace MappedFolderServer.Data;
 
-public class Mapping(string folderPath)
+public class SlugEntry(string folderPath)
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }

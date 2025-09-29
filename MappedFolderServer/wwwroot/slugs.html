@@ -28,7 +28,7 @@
                 <button onclick="deletePassword()">Clear password</button>
                 <br>
                 <br>
-                <button>Delete</button>
+                <button onclick="deleteSlug()">Delete</button>
             </div>
             
         </div>
@@ -45,6 +45,20 @@
         let currently_editing = null
         
         loadSlugs()
+        
+        function deleteSlug() {
+            if(!confirm(`Are you sure you want to delete the slug '${currently_editing.slug}':'${currently_editing.folderPath}'?`))
+                return
+            fetch(`/api/v1/slugs/${currently_editing.id}`, {method: "DELETE"}).then(response => {
+                if(response.ok) {
+                    alert("Slug deleted")
+                    loadSlugs()
+                    closePopup()
+                } else {
+                    alert("Error while deleting slug")
+                }
+            })
+        }
         
         function changePassword() {
             if(newPassword.value !== newPasswordConfirm.value) {

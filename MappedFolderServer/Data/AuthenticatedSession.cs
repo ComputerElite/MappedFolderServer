@@ -10,6 +10,6 @@ public class AuthenticatedSession
     }
     public Guid Id { get; set; }
     public DateTime Expires { get; set; }
-    public List<Mapping> ClaimedSlugs { get; set; } = [];
+    public List<SlugEntry> ClaimedSlugs { get; set; } = [];
     public string SessionToken { get; set; }
 }

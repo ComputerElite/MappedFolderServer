@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.StaticFiles;
 namespace MappedFolderServer.Controllers;
 
 [Route("{slug:regex(^(?!slugs|password|forbidden|assets|api).*$)}/{*subpath}")]
-public class TenantController : Controller
+public class SlugController : Controller
 {
     private readonly IWebHostEnvironment _env;
     private readonly AppDatabaseContext _db;
 
-    public TenantController(IWebHostEnvironment env, AppDatabaseContext db)
+    public SlugController(IWebHostEnvironment env, AppDatabaseContext db)
     {
         _env = env;
         _db = db;
