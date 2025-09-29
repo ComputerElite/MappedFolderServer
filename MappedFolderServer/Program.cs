@@ -34,10 +34,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 var options = new RewriteOptions()
-    .AddRewrite(@"^password$", "password.html", skipRemainingRules: true)
-    .AddRewrite(@"^slugs$", "slugs.html", skipRemainingRules: true)
-    .AddRewrite(@"^forbidden$", "forbidden.html", skipRemainingRules: true);
-
+    .AddRewrite(@"^password\/?$", "password.html", skipRemainingRules: true)
+    .AddRewrite(@"^slugs\/?$", "slugs.html", skipRemainingRules: true)
+    .AddRewrite(@"^forbidden\/?$", "forbidden.html", skipRemainingRules: true);
 app.UseRewriter(options);
 app.UseStaticFiles();
 app.UseAuthentication();

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/style.css">
     <title>Edit slugs</title>
 </head>
 <body>
@@ -73,7 +73,7 @@
                 slug: slugName.value,
                 id: currently_editing.Id
             }
-            fetch(`api/v1/slugs/${currently_editing.id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+            fetch(`/api/v1/slugs/${currently_editing.id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
                 if(response.ok) {
                     closePopup()
                     loadSlugs()
@@ -87,7 +87,7 @@
                 folderPath: slugFolder.value,
                 isPublic: slugPublic.checked == true
             }
-            fetch("api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+            fetch("/api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
                 if(response.ok) {
                     closePopup()
                     loadSlugs()

@@ -1,11 +1,12 @@
 using System.Web;
 using MappedFolderServer.Data;
+using MappedFolderServer.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 
 namespace MappedFolderServer.Controllers;
 
-[Route("slugs/{slug}/{*subpath}")]
+[Route("{slug:regex(^(?!slugs|password|forbidden|assets|api).*$)}/{*subpath}")]
 public class TenantController : Controller
 {
     private readonly IWebHostEnvironment _env;
@@ -20,8 +21,8 @@ public class TenantController : Controller
     [HttpGet]
     public IActionResult Get(string slug, string subpath)
     {
+        if (!SlugChecker.IsSlugValid(slug)) return NotFound();
         // Look up UUID in the database
-        Console.WriteLine(slug);
         var entry = _db.Mappings.FirstOrDefault(t => t.Slug == slug);
         if (entry == null) return NotFound();
         
@@ -36,7 +37,7 @@ public class TenantController : Controller
             if (!unlocked)
             {
                 // redirect to password prompt
-                return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/slugs/{slug}/{subpath}")}");
+                return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/{slug}/{subpath}")}");
             }
         }
 
@@ -44,7 +45,7 @@ public class TenantController : Controller
         var basePath = entry.FolderPath; // e.g. "/data/assets/german"
         var fullPath = Path.GetFullPath(Path.Combine(basePath, subpath ?? "index.html"));
         if (subpath == null && !Request.Path.ToUriComponent().EndsWith("/"))
-            return RedirectPermanent($"/slugs/{slug}/");
+            return RedirectPermanent($"/{slug}/");
         if (!fullPath.StartsWith(entry.FolderPath))
             return Forbid();
 
