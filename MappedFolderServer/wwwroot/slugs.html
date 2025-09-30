@@ -15,14 +15,42 @@
         
     </table>
     <button onclick="newSlug()">New Slug</button>
-    <div class="popup hidden" id="popup">
+    <h1>Folder Claims</h1>
+    <table id="folderClaims">
+
+    </table>
+    <button onclick="newFolderClaim()" class="adminOnly hidden">New Folder Claim</button>
+    <div class="hidden" id="usersWrapper">
+        <h1>users</h1>
+        <table id="users">
+
+        </table>
+    </div>
+
+    <div class="popup hidden" id="folderClaimPopup">
+        <div class="popup-content">
+            <label for="folderClaim-folder">Folder path<input id="folderClaim-folder" type="text"></label><br>
+            <label for="folderClaim-userid">userid<input id="folderClaim-userid" type="text"></label><br>
+            <button onclick="closePopup('folderClaimPopup')">Cancel</button>
+            <button onclick="saveFolderClaim()" class="whenExisting">Save</button>
+            <button onclick="createFolderClaim()" class="whenNew">Create</button>
+            <div class="whenExisting">
+                <br>
+                <br>
+                <button onclick="deleteFolderClaim()">Delete</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <div class="popup hidden" id="slugPopup">
         <div class="popup-content">
             <label class="whenExisting" for="slug-name">Slug<input id="slug-name" type="text"></label><br>
             <label for="slug-folder">Folder<input id="slug-folder" type="text"></label><br>
             <label for="slug-public"><input id="slug-public" type="checkbox">Public</label><br>
-            <button onclick="closePopup()">Cancel</button>
-            <button onclick="save()" class="whenExisting">Save</button>
-            <button onclick="create()" class="whenNew">Create</button>
+            <button onclick="closePopup('slugPopup')">Cancel</button>
+            <button onclick="saveSlug()" class="whenExisting">Save</button>
+            <button onclick="createSlug()" class="whenNew">Create</button>
             <div class="whenExisting">
                 <br>
                 <br>
@@ -44,26 +72,145 @@
         const slugPublic = document.getElementById('slug-public')
         const newPassword = document.getElementById('newPassword')
         const newPasswordConfirm = document.getElementById('newPasswordConfirm')
+        
         const me = document.getElementById('me')
-        const popup = document.getElementById('popup')
+
+        const folderClaims = document.getElementById('folderClaims')
+        const folderClaimFolder = document.getElementById('folderClaim-folder')
+        const folderClaimUserId = document.getElementById('folderClaim-userid')
+
+        const users = document.getElementById('users')
+        const usersWrapper = document.getElementById('usersWrapper')
+        
+        const slugPopup = document.getElementById('slugPopup')
+        const folderClaimPopup = document.getElementById('folderClaimPop')
+
         let me_data = null
+        let user_list = []
+        let folderClaim_list = []
         let slug_list = []
         let currently_editing = null
         
         whoAmI()
         loadSlugs()
+        loadUsers()
+        loadFolderClaims()
+
+
+        function saveFolderClaim() {
+            const slug = {
+                folderPath: folderClaimFolder.value,
+                forUserId: folderClaimUserId.value,
+                id: currently_editing.Id
+            }
+            fetch(`/api/v1/folders/${currently_editing.id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                if(response.ok) {
+                    closePopup('folderClaimPopup');
+                    loadFolderClaims()
+                } else {
+                    alert("An error occurred while creating")
+                }
+            })
+        }
+        function createFolderClaim() {
+            const slug = {
+                folderPath: folderClaimFolder.value,
+                forUserId: folderClaimUserId.value
+            }
+            fetch("/api/v1/folders", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                if(response.ok) {
+                    closePopup('folderClaimPopup');
+                    loadFolderClaims()
+                } else {
+                    alert("An error occurred while creating")
+
+                }
+            })
+        }
+
+        function newFolderClaim() {
+            currently_editing = null
+            openFolderClaimPopup()
+        }
+
+        function editFolderClaim(id) {
+            for(const folderClaim of folderClaim_list) {
+                if(folderClaim.id === id) {
+                    currently_editing = folderClaim
+                    openFolderClaimPopup()
+                }
+            }
+        }
+        
+        function nameFromUserId(id) {
+            if(me_data && me_data.id === id) return me_data.name
+            for(const user of user_list) {
+                if(user.id === id) return user.name
+            }
+            
+            return "Unknown user"
+        }
+        
+        function showFolderClaims() {
+            let html = `<tr>${me_data.isAdmin ?`<th>Actions</th>` : ``}<th>Path</th><th>UserId</th><th>User Name</th></tr>`
+            for(const folderClaim of folderClaim_list) {
+                html += `<tr>
+${me_data.isAdmin ? `<td>
+    <button onclick="editFolderClaim('${folderClaim.id}')">Edit</button>
+</td>` : ``}
+<td>${folderClaim.folderPath}</td>
+<td>${folderClaim.forUserId}</td>
+<td>${nameFromUserId(folderClaim.forUserId)}</td>
+</tr>`
+            }
+            folderClaims.innerHTML = html
+        }
+        
+        function loadFolderClaims() {
+            fetch("/api/v1/folders/all").then(res => {
+                res.json().then(data => {
+                    folderClaim_list = data
+                    showFolderClaims()
+                })
+            })
+        }
+        
+        function showUsers() {
+            usersWrapper.style.display = 'block'
+            let userHtml = `<tr><th>Name</th><th>Id</th><th>IsAdmin</th></tr>`
+            for(const user of user_list) {
+                userHtml += `<tr><td>${user.name}</td><td>${user.id}</td><td>${user.isAdmin}</td></tr>`
+            }
+            users.innerHTML = userHtml
+        }
+        
+        function loadUsers() {
+            fetch(`/api/v1/users/all`).then(res => {
+                if (!res.ok) {
+                    return
+                }
+                res.json().then(data => {
+                    user_list = data
+                    showUsers()
+                    showFolderClaims()
+                })
+            })
+        }
         
         function showMe() {
             if(!me_data) {
                 me.innerHTML = `<p>You're not logged in</p>`
                 return;
             }
+            for(const e of document.getElementsByClassName("adminOnly")) {
+                e.style.display = me_data.isAdmin ? "block" : "none"
+            }
 
             me.innerHTML = `<p>Logged in as: ${me_data.name}<br>IsAdmin: ${me_data.isAdmin}</p>`
         }
         
         function whoAmI() {
-            fetch("/api/v1/me/db").then(res => {
+            fetch("/api/v1/users/me/db").then(res => {
                 if(!res.ok) {
                     showMe()
                     return
@@ -74,6 +221,19 @@
                 })
             })
         }
+        function deleteFolderClaim() {
+            if(!confirm(`Are you sure you want to delete the folderClaim of ${nameFromUserId(currently_editing.forUserId)} (${currently_editing.forUserId}):'${currently_editing.folderPath}'?`))
+                return
+            fetch(`/api/v1/folders/${currently_editing.id}`, {method: "DELETE"}).then(response => {
+                if(response.ok) {
+                    alert("folderClaim deleted")
+                    loadFolderClaims()
+                    closePopup('folderClaimPopup')
+                } else {
+                    alert("Error while deleting folderClaim")
+                }
+            })
+        }
         
         function deleteSlug() {
             if(!confirm(`Are you sure you want to delete the slug '${currently_editing.slug}':'${currently_editing.folderPath}'?`))
@@ -82,7 +242,7 @@
                 if(response.ok) {
                     alert("Slug deleted")
                     loadSlugs()
-                    closePopup()
+                    closePopup('slugPopup')
                 } else {
                     alert("Error while deleting slug")
                 }
@@ -109,7 +269,7 @@
             })
         }
 
-        function save() {
+        function saveSlug() {
             const slug = {
                 folderPath: slugFolder.value,
                 isPublic: slugPublic.checked == true,
@@ -118,21 +278,21 @@
             }
             fetch(`/api/v1/slugs/${currently_editing.id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
                 if(response.ok) {
-                    closePopup()
+                    closePopup('slugPopup')
                     loadSlugs()
                 } else {
                     alert("An error occurred while creating")
                 }
             })
         }
-        function create() {
+        function createSlug() {
             const slug = {
                 folderPath: slugFolder.value,
                 isPublic: slugPublic.checked == true
             }
             fetch("/api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
                 if(response.ok) {
-                    closePopup()
+                    closePopup('slugPopup')
                     loadSlugs()
                 } else {
                     alert("An error occurred while creating")
@@ -141,8 +301,8 @@
             })
         }
         
-        function closePopup() {
-            popup.style.display = 'none';
+        function closePopup(id) {
+            document.getElementById(id).style.display = 'none';
         }
         
         function applyDisplay(className, display) {
@@ -151,10 +311,10 @@
             }
         }
         
-        function openPopup() {
-            popup.style.display = 'block';
+        function openPopup(id, defaultData) {
+            document.getElementById(id).style.display = 'block';
             if(!currently_editing) {
-                currently_editing = {folderPath: "", slug: "", isPublic: false, id: null}
+                currently_editing = defaultData
                 applyDisplay("whenExisting", "none")
                 applyDisplay("whenNew", "block")
             } else {
@@ -162,6 +322,15 @@
                 applyDisplay("whenExisting", "block")
                 applyDisplay("whenNew", "none")
             }
+        }
+        function openFolderClaimPopup() {
+            openPopup('folderClaimPopup', {folderPath: "", forUserId: "", id: null})
+            folderClaimFolder.value = currently_editing.folderPath;
+            folderClaimUserId.value = currently_editing.forUserId;
+        }
+        
+        function openSlugPopup() {
+            openPopup('slugPopup', {folderPath: "", slug: "", isPublic: false, id: null})
             slugName.value = currently_editing.slug;
             slugFolder.value = currently_editing.folderPath;
             slugPublic.checked = currently_editing.isPublic;
@@ -169,16 +338,16 @@
 
         function updateView() {
             let filteredSlugs = slug_list
-            let html = `<tr><th>Slug</th><th>Path</th><th>Public?</th><th>Password Set?</th><th>Actions</th></tr>`
+            let html = `<tr><th>Actions</th><th>Slug</th><th>Path</th><th>Public?</th><th>Password Set?</th></tr>`
             for(const slug of filteredSlugs) {
                 html += `<tr>
+<td>
+    <button onclick="editSlug('${slug.id}')">Edit</button>
+</td>
 <td><a href="${location.href.replace(location.pathname, "")}/${slug.slug}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>
 <td>${slug.isPublic ? "Yes" : "No"}</td>
 <td>${slug.passwordSet ? "Yes" : "No"}</td>
-<td>
-    <button onclick="editSlug('${slug.id}')">Edit</button>
-</td>
 </tr>`
             }
             slugs.innerHTML = html
@@ -186,14 +355,14 @@
         
         function newSlug() {
             currently_editing = null
-            openPopup()
+            openSlugPopup()
         }
         
         function editSlug(id) {
             for(const slug of slug_list) {
                 if(slug.id === id) {
                     currently_editing = slug
-                    openPopup()
+                    openSlugPopup()
                 }
             }
         }

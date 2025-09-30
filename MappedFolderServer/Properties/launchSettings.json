@@ -8,7 +8,6 @@
       "applicationUrl": "http://localhost:5021",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ServedDirectory": "/home/computerelite/rider/MappedFolderServer/serve",
         "UseOAuth": true,
         "OAuthAuthority": "http://localhost:9000/application/o/mfs/",
         "OAuthClientId": "Y05hEioU5gmnCuqUpuCHqVaBJzMNrQeH6ZnJE9oB",
