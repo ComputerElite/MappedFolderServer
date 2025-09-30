@@ -1,0 +1,14 @@
+:80 {
+	# Forward all requests starting with /_remote/ to App A
+	handle /_remote/* {
+		reverse_proxy http://reveal-remote:8080
+	}
+	handle /socket.io/* {
+        reverse_proxy http://reveal-remote:8080
+    }
+
+	# Forward everything else to App B
+	handle {
+		reverse_proxy http://mappedfolderserver:8080
+	}
+}

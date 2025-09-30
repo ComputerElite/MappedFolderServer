@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Config.GetFromEnvironment();
 Console.WriteLine("Migrating Database");
 using (var db = new AppDatabaseContext())
 {
@@ -15,7 +16,6 @@ using (var db = new AppDatabaseContext())
 }
 Console.WriteLine("Migrated Database");
 
-Config.GetFromEnvironment();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -37,7 +37,6 @@ builder.Services.AddAuthentication(options =>
         options.Events.OnRedirectToAccessDenied =
         options.Events.OnRedirectToLogin = c =>
         {
-            Console.WriteLine("sgkrjhinub");
             c.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.FromResult<object>(null);
         };

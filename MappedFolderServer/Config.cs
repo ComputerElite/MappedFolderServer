@@ -7,8 +7,13 @@ public class Config
 {
     public static Config? Instance;
 
-    public string DbConnectionString { get; set; } =
-        "Data Source=Database.db;Cache=Shared";
+    public string DbConnectionString
+    {
+        get => "Data Source=" + DbFilePath + ";Cache=Shared";
+    }
+
+    public string DbFilePath { get; set; } =
+        "/data/database.db";
     public string FrontendUrl { get; set; } = "http://192.168.178.24/";
 
     public bool UseOAuth { get; set; } = false;
