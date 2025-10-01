@@ -12,6 +12,8 @@
     <br><br>
     <h1>Remote Open</h1>
     <p>Your code is <strong id="remoteId">Loading...</strong></p>
+    <div id="qrcode"></div>
+    <script src="assets/qrcode.min.js"></script>
     <script>
         let remoteWs = new WebSocket("/api/v1/remote/ws")
         const remoteId = document.getElementById('remoteId')
@@ -28,6 +30,7 @@
             let data = JSON.parse(event.data);
             console.log(data)
             remoteId.innerText = data.id;
+            new QRCode(document.getElementById("qrcode"), window.location.href.replace(window.location.pathname, "/") + "slugs?remoteId=" + data.id);
             if(data.toOpen) {
                 location.href = data.toOpen;
             }
