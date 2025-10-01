@@ -144,7 +144,7 @@ var options = new RewriteOptions()
     .AddRewrite(@"^slugs\/?$", "slugs.html", skipRemainingRules: true)
     .AddRewrite(@"^forbidden\/?$", "forbidden.html", skipRemainingRules: true);
 app.UseRewriter(options);
-app.UseStaticFiles();
+app.UseFileServer();
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseRouting();
