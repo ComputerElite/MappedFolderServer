@@ -48,7 +48,7 @@ public class SlugController : Controller
                 ClaimsPrincipal? principal = null;
                 if (password != null)
                 {
-                    principal = SlugAuthController.confirmPassword(entry, password);
+                    principal = SlugAuthController.ConfirmPassword(entry, password);
                 }
 
                 if (principal == null)

@@ -31,16 +31,18 @@
             console.log(data)
             remoteId.innerText = data.id;
             new QRCode(document.getElementById("qrcode"), window.location.href.replace(window.location.pathname, "/") + "slugs?remoteId=" + data.id);
-            if(data.toOpen) {
-                location.href = data.toOpen;
+            if(data.openSecret) {
+                location.href = `/api/v1/remote/open?secret=${data.openSecret}`;
             }
         }
         
         remoteWs.onerror = (event) => {
+            console.log("Remote error")
             timeOut()
         }
         
         remoteWs.onclose = (event) => {
+            console.log("Remote closed")
             timeOut()
         }
     </script>

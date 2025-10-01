@@ -42,7 +42,7 @@ public class SlugAuthController : Controller
         var entry = _db.Mappings.FirstOrDefault(p => p.Slug == slug);
         if (entry == null) return NotFound();
 
-        ClaimsPrincipal? principal = confirmPassword(entry, login.Password);
+        ClaimsPrincipal? principal = ConfirmPassword(entry, login.Password);
         if (principal == null) return Unauthorized();
 
         await HttpContext.SignInAsync("AppCookie", principal);
@@ -50,13 +50,8 @@ public class SlugAuthController : Controller
         return Ok(); // back to requested slug
     }
 
-    public static ClaimsPrincipal? confirmPassword(SlugEntry slug, string password)
-    {
-        if (!BCrypt.Net.BCrypt.Verify(password, slug.PasswordHash))
-        {
-            return null;
-        }
-                                                      
+    public static ClaimsPrincipal GetClaim(SlugEntry slug)
+    {                  
         // Add a claim proving the user has unlocked this slug
         var claims = new List<Claim>
         {
@@ -65,5 +60,15 @@ public class SlugAuthController : Controller
                                                       
         var identity = new ClaimsIdentity(claims, "AppCookie");
         return new ClaimsPrincipal(identity);
+    }
+
+    public static ClaimsPrincipal? ConfirmPassword(SlugEntry slug, string password)
+    {
+        if (!BCrypt.Net.BCrypt.Verify(password, slug.PasswordHash))
+        {
+            return null;
+        }
+
+        return GetClaim(slug);
     }
 }

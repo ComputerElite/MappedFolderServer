@@ -6,7 +6,7 @@ public class AuthenticatedSession
 {
     public AuthenticatedSession()
     {
-        SessionToken = RandomUtils.GenerateSessionToken();
+        SessionToken = RandomUtils.GenerateToken();
     }
     public Guid Id { get; set; }
     public DateTime Expires { get; set; }

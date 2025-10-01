@@ -102,10 +102,10 @@
             for(const s of slug_list) {
                 if(s.id !== slugId) continue;
                 if(!remoteId) remoteId = prompt("Remote id")
-                let openUrl = location.href.split("slugs")[0] + s.slug
-                fetch(`/api/v1/remote/send/${remoteId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({toOpen: openUrl})}).then((response) => {
+                fetch(`/api/v1/remote/send/${remoteId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({opensSlugId: s.id})}).then((response) => {
                     if(!response.ok) alert("An error occurred, check your input id") 
                 })
+                remoteId = null
                 return;
             }
             alert("Slug not found")

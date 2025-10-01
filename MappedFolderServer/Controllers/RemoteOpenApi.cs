@@ -1,23 +1,46 @@
 using System.Net.WebSockets;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Text.Json;
 using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MappedFolderServer.Controllers;
 
 [Route("api/v1/remote")]
 public class RemoteOpenApi : Controller
 {
-    private static Dictionary<string, string?> openDict = new();
-    
     private ICurrentUserService _currentUser;
+    private AppDatabaseContext _db;
 
-    public RemoteOpenApi(ICurrentUserService currentUser)
+    public RemoteOpenApi(ICurrentUserService currentUser, AppDatabaseContext db)
     {
         _currentUser = currentUser;
+        _db = db;
+    }
+
+    [HttpGet("open")]
+    public async Task<IActionResult> Open([FromQuery(Name = "secret")] string? secret)
+    {
+        RemoteWebsocketData? wsData = _db.RemoteWebsocketData.FirstOrDefault(x => x.OpenSecret == secret);
+        if (wsData == null) return Unauthorized();
+        if (wsData.Expires < DateTime.UtcNow)
+        {
+            _db.Remove(wsData);
+            await _db.SaveChangesAsync();
+            return Unauthorized();
+        }
+        SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == wsData.OpensSlugId);
+        if (slug == null) return NotFound();
+
+        await HttpContext.SignInAsync("AppCookie", SlugAuthController.GetClaim(slug));
+        _db.RemoteWebsocketData.Remove(wsData);
+        await _db.SaveChangesAsync();
+        return Redirect($"/{slug.Slug}");
     }
 
     [HttpPost("send/{remoteId}")]
@@ -26,12 +49,28 @@ public class RemoteOpenApi : Controller
     {
         User? user = _currentUser.GetCurrentUser();
         if (user == null) return Forbid();
-        if (!openDict.ContainsKey(remoteId))
+        RemoteWebsocketData? remoteData = _db.RemoteWebsocketData.FirstOrDefault(x => x.Id == remoteId);
+        if (remoteData == null)
         {
             return NotFound();
         }
 
-        openDict[remoteId] = data.ToOpen;
+        SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == data.OpensSlugId);
+        if (slug == null)
+        {
+            return Forbid();
+        }
+
+        if (!slug.CanBeAccessedBy(user))
+        {
+            return Forbid();
+        }
+
+        remoteData.OpensSlugId = data.OpensSlugId;
+        remoteData.OpenSecret = Guid.NewGuid().ToString();
+        remoteData.Expires = DateTime.UtcNow.AddMinutes(1);
+        _db.RemoteWebsocketData.Update(remoteData);
+        _db.SaveChanges();
         return Ok();
     }
     
@@ -50,22 +89,39 @@ public class RemoteOpenApi : Controller
         }
         
     }
-    
-    private static async Task HandleRemote(WebSocket webSocket)
+
+    private string GetId()
     {
-        string id;
-        while(openDict.ContainsKey(id = Random.Shared.Next(10000).ToString().PadLeft(4, '0'))) {}
+        return Random.Shared.Next(10000).ToString().PadLeft(4, '0');
+    }
+    
+    
+    private async Task HandleRemote(WebSocket webSocket)
+    {
+        await _db.RemoteWebsocketData.Where(x => x.Expires > DateTime.UtcNow).ExecuteDeleteAsync();
+        string id = GetId();
+        while (_db.RemoteWebsocketData.Any(x => x.Id == id))
+        {
+            id = GetId();
+        }
         // Generate Id and send to the client
         await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new RemoteWebsocketData(id))), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
-        DateTime closeAt = DateTime.UtcNow.AddMinutes(5);
-        openDict.Add(id, null);
-        while (openDict.ContainsKey(id))
+        RemoteWebsocketData data = new RemoteWebsocketData(id)
         {
-            if (DateTime.UtcNow > closeAt)
+            Expires = DateTime.UtcNow.AddMinutes(10)
+        };
+        _db.RemoteWebsocketData.Add(data);
+        await _db.SaveChangesAsync();
+        while (_db.RemoteWebsocketData.Any(x => x.Id == id))
+        {
+            await _db.Entry(data).ReloadAsync();
+            if (DateTime.UtcNow > data.Expires)
             {
+                _db.Remove(data);
                 break;
             }
-            if (openDict[id] == null)
+
+            if (data.OpensSlugId == null)
             {
                 if (webSocket.State != WebSocketState.Open) break;
                 await Task.Delay(50);
@@ -73,10 +129,12 @@ public class RemoteOpenApi : Controller
             }
 
             if (webSocket.State != WebSocketState.Open) break;
-            await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new RemoteWebsocketData(id, openDict[id]))), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
+            Console.WriteLine("Sending");
+            await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data)), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
             break;
         }
-        openDict.Remove(id);
+
+        Console.WriteLine("Closing");
         if (webSocket.State != WebSocketState.Open) return;
         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
     }
