@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+    <h1>Mapped Folder Server</h1>
+    <a href="/password">Login</a>
+    <a href="/slugs">Slugs</a>
+    <br><br>
+    <h1>Remote Open</h1>
+    <p>Your code is <strong id="remoteId">Loading...</strong></p>
+    <script>
+        let remoteWs = new WebSocket("/api/v1/remote/ws")
+        const remoteId = document.getElementById('remoteId')
+        
+        function timeOut() {
+            alert("The remote websocket timed out")
+        }
+        
+        remoteWs.onopen = () => {
+            console.log("Remote opened")
+        }
+        
+        remoteWs.onmessage = (event) => {
+            let data = JSON.parse(event.data);
+            console.log(data)
+            remoteId.innerText = data.id;
+            if(data.toOpen) {
+                location.href = data.toOpen;
+            }
+        }
+        
+        remoteWs.onerror = (event) => {
+            timeOut()
+        }
+        
+        remoteWs.onclose = (event) => {
+            timeOut()
+        }
+    </script>
+</body>
+</html>

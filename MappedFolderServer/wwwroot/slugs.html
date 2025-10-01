@@ -96,6 +96,18 @@
         loadUsers()
         loadFolderClaims()
 
+        function remoteOpen(slugId) {
+            for(const s of slug_list) {
+                if(s.id !== slugId) continue;
+                let remoteId = prompt("Remote id")
+                let openUrl = location.href.split("slugs")[0] + s.slug
+                fetch(`/api/v1/remote/send/${remoteId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({toOpen: openUrl})}).then((response) => {
+                    if(!response.ok) alert("An error occurred, check your input id") 
+                })
+                return;
+            }
+            alert("Slug not found")
+        }
 
         function saveFolderClaim() {
             const slug = {
@@ -343,6 +355,7 @@ ${me_data.isAdmin ? `<td>
                 html += `<tr>
 <td>
     <button onclick="editSlug('${slug.id}')">Edit</button>
+    <button onclick="remoteOpen('${slug.id}')">Remote open</button>
 </td>
 <td><a href="${location.href.replace(location.pathname, "")}/${slug.slug}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>

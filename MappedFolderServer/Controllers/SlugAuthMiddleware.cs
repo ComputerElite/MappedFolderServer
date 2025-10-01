@@ -42,22 +42,28 @@ public class SlugAuthController : Controller
         var entry = _db.Mappings.FirstOrDefault(p => p.Slug == slug);
         if (entry == null) return NotFound();
 
-        if (!BCrypt.Net.BCrypt.Verify(login.Password, entry.PasswordHash))
-        {
-            return Unauthorized();
-        }
-
-        // Add a claim proving the user has unlocked this slug
-        var claims = new List<Claim>
-        {
-            new("UnlockedSlug", entry.Id.ToString())
-        };
-
-        var identity = new ClaimsIdentity(claims, "AppCookie");
-        var principal = new ClaimsPrincipal(identity);
+        ClaimsPrincipal? principal = confirmPassword(entry, login.Password);
+        if (principal == null) return Unauthorized();
 
         await HttpContext.SignInAsync("AppCookie", principal);
 
         return Ok(); // back to requested slug
+    }
+
+    public static ClaimsPrincipal? confirmPassword(SlugEntry slug, string password)
+    {
+        if (!BCrypt.Net.BCrypt.Verify(password, slug.PasswordHash))
+        {
+            return null;
+        }
+                                                      
+        // Add a claim proving the user has unlocked this slug
+        var claims = new List<Claim>
+        {
+            new("UnlockedSlug", slug.Id.ToString())
+        };
+                                                      
+        var identity = new ClaimsIdentity(claims, "AppCookie");
+        return new ClaimsPrincipal(identity);
     }
 }

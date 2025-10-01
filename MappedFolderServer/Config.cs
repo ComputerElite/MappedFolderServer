@@ -13,7 +13,7 @@ public class Config
     }
 
     public string DbFilePath { get; set; } =
-        "/data/database.db";
+        "Database.db";
     public string FrontendUrl { get; set; } = "http://192.168.178.24/";
 
     public bool UseOAuth { get; set; } = false;

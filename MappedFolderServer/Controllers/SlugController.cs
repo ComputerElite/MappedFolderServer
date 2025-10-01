@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using System.Web;
 using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
 using MappedFolderServer.Util;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 
@@ -20,7 +22,7 @@ public class SlugController : Controller
     }
 
     [HttpGet]
-    public IActionResult Get(string slug, string subpath)
+    public IActionResult Get(string slug, string subpath, [FromQuery(Name = "password")]string? password)
     {
         Console.WriteLine(slug);
         if (!SlugChecker.IsSlugValid(slug)) return NotFound();
@@ -42,8 +44,23 @@ public class SlugController : Controller
             if (loggedInUser != null && entry.CreatedBy != null) unlocked = loggedInUser.Id == entry.CreatedBy;
             if (!unlocked)
             {
+                // check for password in query string
+                ClaimsPrincipal? principal = null;
+                if (password != null)
+                {
+                    principal = SlugAuthController.confirmPassword(entry, password);
+                }
+
+                if (principal == null)
+                {
+                    return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/{slug}/{subpath}")}");
+                }
+                else
+                {
+                    // Sign in the user
+                    HttpContext.SignInAsync("AppCookie", principal);
+                }
                 // redirect to password prompt
-                return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/{slug}/{subpath}")}");
             }
         }
 
