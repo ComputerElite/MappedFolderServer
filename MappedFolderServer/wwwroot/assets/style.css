@@ -1,9 +1,58 @@
 :root {
     --error-color: #ff0000;
     --error-text: #000000;
-    --border-radius: 3px;
-    --small-padding: 5px;
+    --border-radius: 10px;
+    --small-padding: 20px;
     --popup-color: #444444;
+    --bg-color: #160a29;
+    --text-color: #eaeaea;
+    --link-color: #40b2ff;
+    --input-bg-color: #31263c;
+    --accent: #d1abff;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+button {
+    border-radius: 5px;
+    min-width: 100px;
+    background-color: var(--input-bg-color);
+    border-color: var(--accent);
+    color: var(--accent);
+    padding: 5px;
+}
+
+.qrcode {
+    padding: 20px;
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    width: min-content;
+}
+
+.dangerous {
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+
+input {
+    border-radius: 5px;
+    min-width: 100px;
+    background-color: var(--input-bg-color);
+    border-color: var(--accent);
+    color: var(--accent);
+    padding: 5px;
+}
+
+input[type=checkbox] {
+    min-width: 0;
+}
+
+a {
+    color: var(--link-color);
 }
 
 .error-box {
@@ -23,13 +72,14 @@
     top: 0;
     width: 100vw;
     height: 100vh;
-    background-color:#00000033
+    background-color:#000000AA;
 }
 
 .popup-content {
-    background-color: var(--popup-color);
+    background-color: var(--bg-color);
     position: absolute;
     left: 50vw;
+    border: var(--accent) 3px solid;
     top:  50vh;
     transform: translate(-50%, -50%);
     border-radius:  var(--border-radius);

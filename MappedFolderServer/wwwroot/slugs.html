@@ -29,15 +29,30 @@
 
     <div class="popup hidden" id="folderClaimPopup">
         <div class="popup-content">
-            <label for="folderClaim-folder">Folder path<input id="folderClaim-folder" type="text"></label><br>
-            <label for="folderClaim-userid">userid<input id="folderClaim-userid" type="text"></label><br>
-            <button onclick="closePopup('folderClaimPopup')">Cancel</button>
-            <button onclick="saveFolderClaim()" class="whenExisting">Save</button>
-            <button onclick="createFolderClaim()" class="whenNew">Create</button>
+            <table>
+                <tr>
+                    <td>Folder path</td><td><input id="folderClaim-folder" type="text"></td>
+                </tr>
+                <tr>
+                    <td>userid</td><td><input id="folderClaim-userid" type="text"></td>
+                </tr>
+                <tr>
+                    <td class="whenExisting"><button onclick="saveFolderClaim()">Save</button></td>
+                    <td class="whenNew"><button onclick="createFolderClaim()">Create</button></td>
+                    <td><button onclick="closePopup('folderClaimPopup')">Cancel</button></td>
+                </tr>
+            </table>
+            
+            
+            
             <div class="whenExisting">
                 <br>
                 <br>
-                <button onclick="deleteFolderClaim()">Delete</button>
+                <tr>
+                    <td>
+                        <button onclick="deleteFolderClaim()" class="dangerous">Delete</button>
+                    </td>
+                </tr>
             </div>
 
         </div>
@@ -45,22 +60,45 @@
     
     <div class="popup hidden" id="slugPopup">
         <div class="popup-content">
-            <label class="whenExisting" for="slug-name">Slug<input id="slug-name" type="text"></label><br>
-            <label for="slug-folder">Folder<input id="slug-folder" type="text"></label><br>
-            <label for="slug-public"><input id="slug-public" type="checkbox">Public</label><br>
-            <button onclick="closePopup('slugPopup')">Cancel</button>
-            <button onclick="saveSlug()" class="whenExisting">Save</button>
-            <button onclick="createSlug()" class="whenNew">Create</button>
+            <table>
+                <tr class="whenExisting">
+                    <td>Slug</td><td><input id="slug-name" type="text"></td>
+                </tr>
+                <tr>
+                    <td>Folder</td><td><input id="slug-folder" type="text"></td>
+                </tr>
+                <tr>
+                    <td>Make Public</td><td><input id="slug-public" type="checkbox"></td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="whenExisting"><button onclick="saveSlug()">Save</button></td>
+                    <td class="whenNew"><button onclick="createSlug()">Create</button></td>
+                    <td><button onclick="closePopup('slugPopup')">Cancel</button></td>
+                </tr>
+            </table>
             <div class="whenExisting">
-                <br>
-                <br>
-                <label for="newPassword"><input type="password" placeholder="new password" id="newPassword"></label>
-                <label for="newPasswordConfirm"><input type="password" placeholder="confirm new password" id="newPasswordConfirm"></label>
-                <button onclick="changePassword()">Change password</button>
-                <button onclick="deletePassword()">Clear password</button>
-                <br>
-                <br>
-                <button onclick="deleteSlug()">Delete</button>
+                <br><br>
+                <table>
+                    <tr>
+                        <td>New Password</td>
+                        <td><input type="password" placeholder="new password" id="newPassword"></td>
+                    </tr>
+                    <tr>
+                        <td>Confirm Password</td>
+                        <td><input type="password" placeholder="confirm new password" id="newPasswordConfirm"></td>
+                    </tr>
+                    <tr>
+                        <td><button onclick="changePassword()">Change password</button></td>
+                        <td><button onclick="deletePassword()">Clear password</button></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="dangerous" onclick="deleteSlug()">Delete</button>
+                        </td>
+                    </tr>
+                </table>
             </div>
             
         </div>
@@ -321,7 +359,8 @@ ${me_data.isAdmin ? `<td>
         
         function applyDisplay(className, display) {
             for(const e of document.getElementsByClassName(className)) {
-                e.style.display = display;
+                console.log(e.tagName)
+                e.style.display = e.tagName.toLowerCase() === "tr" && display === "block" ? "table-row" : display;
             }
         }
         

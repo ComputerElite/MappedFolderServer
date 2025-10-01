@@ -23,11 +23,12 @@ public class RemoteOpenApi : Controller
         _db = db;
     }
 
-    [HttpGet("open")]
-    public async Task<IActionResult> Open([FromQuery(Name = "secret")] string? secret)
+    [HttpGet("open/{id}")]
+    public async Task<IActionResult> Open([FromQuery(Name = "secret")] string? secret, [FromRoute]string id)
     {
-        RemoteWebsocketData? wsData = _db.RemoteWebsocketData.FirstOrDefault(x => x.OpenSecret == secret);
+        RemoteWebsocketData? wsData = _db.RemoteWebsocketData.FirstOrDefault(x => x.Id == id);
         if (wsData == null) return Unauthorized();
+        if (!BCrypt.Net.BCrypt.Verify(secret, wsData.Secret)) return Unauthorized();
         if (wsData.Expires < DateTime.UtcNow)
         {
             _db.Remove(wsData);
@@ -38,8 +39,12 @@ public class RemoteOpenApi : Controller
         if (slug == null) return NotFound();
 
         await HttpContext.SignInAsync("AppCookie", SlugAuthController.GetClaim(slug));
-        _db.RemoteWebsocketData.Remove(wsData);
-        await _db.SaveChangesAsync();
+        if (wsData.CreatedByUserId == null)
+        {
+            // Single use for remote. If it contains a user however we keep it for multi use
+            _db.RemoteWebsocketData.Remove(wsData);
+            await _db.SaveChangesAsync();
+        }
         return Redirect($"/{slug.Slug}");
     }
 
@@ -67,7 +72,7 @@ public class RemoteOpenApi : Controller
         }
 
         remoteData.OpensSlugId = data.OpensSlugId;
-        remoteData.OpenSecret = Guid.NewGuid().ToString();
+        remoteData.Secret = Guid.NewGuid().ToString();
         remoteData.Expires = DateTime.UtcNow.AddMinutes(1);
         _db.RemoteWebsocketData.Update(remoteData);
         _db.SaveChanges();
@@ -130,6 +135,11 @@ public class RemoteOpenApi : Controller
 
             if (webSocket.State != WebSocketState.Open) break;
             Console.WriteLine("Sending");
+            if (data.Secret == null) break;
+            string unhashedSecret = data.Secret;
+            data.Secret = BCrypt.Net.BCrypt.HashPassword(data.Secret);
+            await _db.SaveChangesAsync();
+            data.Secret = unhashedSecret;
             await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data)), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
             break;
         }

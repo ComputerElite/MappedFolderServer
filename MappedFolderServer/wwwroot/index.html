@@ -12,7 +12,7 @@
     <br><br>
     <h1>Remote Open</h1>
     <p>Your code is <strong id="remoteId">Loading...</strong></p>
-    <div id="qrcode"></div>
+    <div id="qrcode" class="qrcode"></div>
     <script src="assets/qrcode.min.js"></script>
     <script>
         let remoteWs = new WebSocket("/api/v1/remote/ws")
@@ -31,8 +31,8 @@
             console.log(data)
             remoteId.innerText = data.id;
             new QRCode(document.getElementById("qrcode"), window.location.href.replace(window.location.pathname, "/") + "slugs?remoteId=" + data.id);
-            if(data.openSecret) {
-                location.href = `/api/v1/remote/open?secret=${data.openSecret}`;
+            if(data.secret) {
+                location.href = `/api/v1/remote/open/${data.id}?secret=${data.secret}`;
             }
         }
         
