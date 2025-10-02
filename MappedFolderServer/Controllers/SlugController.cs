@@ -34,12 +34,13 @@ public class SlugController : Controller
         
         if (!entry.IsPublic && (loggedInUser == null || !entry.CanBeAccessedBy(loggedInUser))) // access check only if not public. If user is admin skip the check
         {
-            if (!entry.PasswordSet)
+            var privateUnlocked = User.Claims.Any(c => c.Type == "RemoteUnlockedSlug" && c.Value == entry.Id.ToString());
+            if (!entry.PasswordSet && !privateUnlocked)
             {
                 // private
                 return NotFound();
             }
-            var unlocked = User.Claims.Any(c => c.Type == "UnlockedSlug" && c.Value == entry.Id.ToString());
+            var unlocked = User.Claims.Any(c => c.Type == "UnlockedSlug" && c.Value == entry.Id.ToString()) || privateUnlocked;
             
             if (loggedInUser != null && entry.CreatedBy != null) unlocked = loggedInUser.Id == entry.CreatedBy;
             if (!unlocked)

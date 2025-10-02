@@ -23,6 +23,13 @@ public class RemoteOpenApi : Controller
         _db = db;
     }
 
+    [Authorize("oidc")]
+    public async Task<IActionResult> All()
+    {
+        User? user = _currentUser.GetCurrentUser();
+        return Ok();
+    }
+
     [HttpGet("open/{id}")]
     public async Task<IActionResult> Open([FromQuery(Name = "secret")] string? secret, [FromRoute]string id)
     {
@@ -38,8 +45,8 @@ public class RemoteOpenApi : Controller
         SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == wsData.OpensSlugId);
         if (slug == null) return NotFound();
 
-        await HttpContext.SignInAsync("AppCookie", SlugAuthController.GetClaim(slug));
-        if (wsData.CreatedByUserId == null)
+        await HttpContext.SignInAsync("AppCookie", SlugAuthController.GetClaim(slug, "RemoteUnlockedSlug"));
+        if(wsData.CreatedByUserId == null)
         {
             // Single use for remote. If it contains a user however we keep it for multi use
             _db.RemoteWebsocketData.Remove(wsData);

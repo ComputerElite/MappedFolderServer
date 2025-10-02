@@ -50,12 +50,12 @@ public class SlugAuthController : Controller
         return Ok(); // back to requested slug
     }
 
-    public static ClaimsPrincipal GetClaim(SlugEntry slug)
+    public static ClaimsPrincipal GetClaim(SlugEntry slug, string claimName = "UnlockedSlug")
     {                  
         // Add a claim proving the user has unlocked this slug
         var claims = new List<Claim>
         {
-            new("UnlockedSlug", slug.Id.ToString())
+            new(claimName, slug.Id.ToString())
         };
                                                       
         var identity = new ClaimsIdentity(claims, "AppCookie");
