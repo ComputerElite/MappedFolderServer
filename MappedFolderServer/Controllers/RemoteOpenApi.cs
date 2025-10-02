@@ -25,7 +25,7 @@ public class RemoteOpenApi : Controller
     }
 
     [HttpDelete("delete/{id}")]
-    [Authorize(AuthenticationSchemes = "oicd")]
+    [Authorize(AuthenticationSchemes = "oidc")]
     public async Task<IActionResult> Delete(string id)
     {
         User? user = _currentUser.GetCurrentUser();

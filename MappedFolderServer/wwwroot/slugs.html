@@ -32,6 +32,20 @@
         </table>
     </div>
 
+    <div class="popup hidden" id="remoteOpenChooserPopup">
+        <div class="popup-content">
+            <h3>Input remote id...</h3>
+            <label>Remote id: <input type="text" id="remoteChooserId"></label>
+            <button onclick="//ToDo">Open on remote</button>
+            <br>
+            <h3>...or set RemoteOpen</h3>
+            <table id="remoteOpenChooserTable">
+                
+            </table>
+            <button onclick=" closePopup('remoteOpenChooserPopup')">Cancel</button>
+        </div>
+    </div>
+
     <div class="popup hidden" id="remoteOpenPopup">
         <div class="popup-content">
             <h3>RemoteOpen created</h3>
@@ -239,7 +253,7 @@ window.location.href = '${getLink()}'
             if(!confirmDelete(`The RemoteOpen '${remoteOpen.name}' (${remoteOpen.id})`))
                 return;
             
-            fetch(`/api/v1/remotes/delete/${remote.id}`, {method: 'DELETE'}).then(res => {
+            fetch(`/api/v1/remotes/delete/${remoteOpen.id}`, {method: 'DELETE'}).then(res => {
                 if(!res.ok) {
                     alert("Error deleting RemoteOpen")
                     return;
@@ -313,9 +327,18 @@ window.location.href = '${getLink()}'
         function chooseRemoteOpen(slugId) {
             for(const s of slug_list) {
                 if(s.id !== slugId) continue;
-                if(!remoteId) remoteId = prompt("Remote id")
-                setRemoteOpen(remoteId, s.id)
-                remoteId = null
+                if(remoteId) {
+                    setRemoteOpen(remoteId, s.id)
+                    remoteId = null
+                    return
+                }
+
+                openPopup('remoteOpenChooserPopup', null)
+                let html = "<tr><th>Action</th><th>Name</th><th>Id</th></tr>"
+                for(const o of remoteOpen_list) {
+                    html += `<tr><td><button onclick="setRemoteOpen('${o.id}', '${s.id}'); closePopup('remoteOpenChooserPopup'); loadRemoteOpens();">Set</button></td><td>${o.name}</td><td>${o.id}</td></tr>`
+                }
+                document.getElementById("remoteOpenChooserTable").innerHTML = html
                 return;
             }
             alert("Slug not found")
