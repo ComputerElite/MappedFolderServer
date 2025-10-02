@@ -8,7 +8,7 @@ public class AppDatabaseContext : DbContext
     public DbSet<AuthenticatedSession> Sessions { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<FolderClaim> FolderClaims { get; set; }
-    public DbSet<RemoteWebsocketData>  RemoteWebsocketData { get; set; }
+    public DbSet<RemoteOpenData>  RemoteOpenData { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

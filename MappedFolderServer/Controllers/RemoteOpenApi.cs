@@ -6,12 +6,13 @@ using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace MappedFolderServer.Controllers;
 
-[Route("api/v1/remote")]
+[Route("api/v1/remotes")]
 public class RemoteOpenApi : Controller
 {
     private ICurrentUserService _currentUser;
@@ -23,17 +24,87 @@ public class RemoteOpenApi : Controller
         _db = db;
     }
 
-    [Authorize("oidc")]
+    [HttpDelete("delete/{id}")]
+    [Authorize(AuthenticationSchemes = "oicd")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        User? user = _currentUser.GetCurrentUser();
+        if (user == null) return Unauthorized();
+        RemoteOpenData? data = _db.RemoteOpenData.FirstOrDefault(x => x.Id == id);
+        if (data == null) return NotFound();
+        if (!data.CanBeAccessedBy(user)) return Forbid();
+        _db.Remove(data);
+        await _db.SaveChangesAsync();
+        return Ok();    
+    }
+    
+    [HttpPost("regenerate/{id}")]
+    [Authorize(AuthenticationSchemes = "oidc")]
+    public async Task<IActionResult> Regenerate(string id)
+    {
+        User? user = _currentUser.GetCurrentUser();
+        if (user == null) return Unauthorized();
+        RemoteOpenData? data = _db.RemoteOpenData.FirstOrDefault(x => x.Id == id);
+        if (data == null) return NotFound();
+        if (!data.CanBeAccessedBy(user)) return Forbid();
+        string secret = RandomUtils.GenerateToken();
+        // Store the hash in the database
+        data.Secret = BCrypt.Net.BCrypt.HashPassword(secret);
+        _db.Update(data);
+        await _db.SaveChangesAsync();
+        data.Secret = secret;
+        // But send the secret back to the client
+        return Ok(data);    
+    }
+    
+
+    [HttpPost("new")]
+    [Authorize(AuthenticationSchemes = "oidc")]
+    public async Task<IActionResult> Create([FromBody] RemoteOpenData data)
+    {
+        User? user = _currentUser.GetCurrentUser();
+        if (user == null) return Unauthorized();
+        if (data.OpensSlugId != null)
+        {
+            SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == data.OpensSlugId);
+            if (slug == null) return NotFound();
+            if(!slug.CanBeAccessedBy(user)) return Forbid();
+        }
+        RemoteOpenData d = new RemoteOpenData(Guid.NewGuid().ToString())
+        {
+            CreatedBy = user.Id,
+            Expires = DateTime.MaxValue,
+            Name = data.Name,
+            OpensSlugId = data.OpensSlugId,
+            Secret = RandomUtils.GenerateToken()
+        };
+        string secret = RandomUtils.GenerateToken();
+        // Store the hash in the database
+        d.Secret = BCrypt.Net.BCrypt.HashPassword(secret);
+        _db.RemoteOpenData.Add(d);
+        await _db.SaveChangesAsync();
+        d.Secret = secret;
+        // But send the secret back to the client
+        return Ok(d);    
+    }
+
+    [HttpGet("all")]
+    [Authorize(AuthenticationSchemes = "oidc")]
     public async Task<IActionResult> All()
     {
         User? user = _currentUser.GetCurrentUser();
-        return Ok();
+        if (user == null) return Unauthorized();
+        if (user.IsAdmin)
+        {
+            return Ok(_db.RemoteOpenData.ToList());
+        }
+        return Ok(_db.RemoteOpenData.Where(x => x.CreatedBy == user.Id).ToList());
     }
 
     [HttpGet("open/{id}")]
     public async Task<IActionResult> Open([FromQuery(Name = "secret")] string? secret, [FromRoute]string id)
     {
-        RemoteWebsocketData? wsData = _db.RemoteWebsocketData.FirstOrDefault(x => x.Id == id);
+        RemoteOpenData? wsData = _db.RemoteOpenData.FirstOrDefault(x => x.Id == id);
         if (wsData == null) return Unauthorized();
         if (!BCrypt.Net.BCrypt.Verify(secret, wsData.Secret)) return Unauthorized();
         if (wsData.Expires < DateTime.UtcNow)
@@ -42,29 +113,49 @@ public class RemoteOpenApi : Controller
             await _db.SaveChangesAsync();
             return Unauthorized();
         }
+
+        if (wsData.OpensSlugId == null)
+        {
+            return NotFound(
+                "This RemoteOpenEntry isn't associated with any slug. Please update it from within the slug page");
+        }
         SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == wsData.OpensSlugId);
         if (slug == null) return NotFound();
 
         await HttpContext.SignInAsync("AppCookie", SlugAuthController.GetClaim(slug, "RemoteUnlockedSlug"));
-        if(wsData.CreatedByUserId == null)
+        if(wsData.CreatedBy == null)
         {
             // Single use for remote. If it contains a user however we keep it for multi use
-            _db.RemoteWebsocketData.Remove(wsData);
+            _db.RemoteOpenData.Remove(wsData);
             await _db.SaveChangesAsync();
         }
         return Redirect($"/{slug.Slug}");
     }
 
-    [HttpPost("send/{remoteId}")]
+    [HttpPost("edit/{remoteId}")]
     [Authorize(AuthenticationSchemes = "oidc")]
-    public IActionResult Send([FromRoute]string remoteId, [FromBody] RemoteWebsocketData data)
+    public IActionResult Send([FromRoute]string remoteId, [FromBody] RemoteOpenData data)
     {
         User? user = _currentUser.GetCurrentUser();
         if (user == null) return Forbid();
-        RemoteWebsocketData? remoteData = _db.RemoteWebsocketData.FirstOrDefault(x => x.Id == remoteId);
+        RemoteOpenData? remoteData = _db.RemoteOpenData.FirstOrDefault(x => x.Id == remoteId);
         if (remoteData == null)
         {
             return NotFound();
+        }
+
+        if (remoteData.CreatedBy != null && !remoteData.CanBeAccessedBy(user))
+        {
+            return Forbid();
+        }
+
+        if (data.OpensSlugId == null)
+        {
+            // revokes access to slugs. Aka parks a RemoteOpenEntry
+            remoteData.OpensSlugId = null;
+            _db.RemoteOpenData.Update(remoteData);
+            _db.SaveChanges();
+            return Ok();
         }
 
         SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == data.OpensSlugId);
@@ -79,9 +170,14 @@ public class RemoteOpenApi : Controller
         }
 
         remoteData.OpensSlugId = data.OpensSlugId;
-        remoteData.Secret = Guid.NewGuid().ToString();
-        remoteData.Expires = DateTime.UtcNow.AddMinutes(1);
-        _db.RemoteWebsocketData.Update(remoteData);
+        if(data.Name != null) remoteData.Name = data.Name;
+        if (remoteData.CreatedBy == null)
+        {
+            // Only set a secret and update expiration if it's a temporary open request
+            remoteData.Secret = Guid.NewGuid().ToString();
+            remoteData.Expires = DateTime.UtcNow.AddMinutes(1);
+        }
+        _db.RemoteOpenData.Update(remoteData);
         _db.SaveChanges();
         return Ok();
     }
@@ -110,21 +206,21 @@ public class RemoteOpenApi : Controller
     
     private async Task HandleRemote(WebSocket webSocket)
     {
-        await _db.RemoteWebsocketData.Where(x => x.Expires > DateTime.UtcNow).ExecuteDeleteAsync();
+        await _db.RemoteOpenData.Where(x => x.Expires > DateTime.UtcNow).ExecuteDeleteAsync();
         string id = GetId();
-        while (_db.RemoteWebsocketData.Any(x => x.Id == id))
+        while (_db.RemoteOpenData.Any(x => x.Id == id))
         {
             id = GetId();
         }
         // Generate Id and send to the client
-        await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new RemoteWebsocketData(id))), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
-        RemoteWebsocketData data = new RemoteWebsocketData(id)
+        await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new RemoteOpenData(id))), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
+        RemoteOpenData data = new RemoteOpenData(id)
         {
             Expires = DateTime.UtcNow.AddMinutes(10)
         };
-        _db.RemoteWebsocketData.Add(data);
+        _db.RemoteOpenData.Add(data);
         await _db.SaveChangesAsync();
-        while (_db.RemoteWebsocketData.Any(x => x.Id == id))
+        while (_db.RemoteOpenData.Any(x => x.Id == id))
         {
             await _db.Entry(data).ReloadAsync();
             if (DateTime.UtcNow > data.Expires)

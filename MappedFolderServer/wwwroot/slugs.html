@@ -15,6 +15,11 @@
         
     </table>
     <button onclick="newSlug()">New Slug</button>
+    <h1>Remote Open Entries</h1>
+    <table id="remoteOpens">
+        
+    </table>
+    <button onclick="newRemoteOpen()">New Remote Open</button>
     <h1>Folder Claims</h1>
     <table id="folderClaims">
 
@@ -25,6 +30,18 @@
         <table id="users">
 
         </table>
+    </div>
+
+    <div class="popup hidden" id="remoteOpenPopup">
+        <div class="popup-content">
+            <h3>RemoteOpen created</h3>
+            <p>Copy the link and save it or download the html. You cannot view it again without regenerating the secret.</p>
+            <button onclick="copyLink()">Copy link</button>
+            <button onclick="downloadHtml()">Download html</button>
+            <br>
+            <br>
+            <button onclick="closePopup('remoteOpenPopup')">Close</button>
+        </div>
     </div>
 
     <div class="popup hidden" id="folderClaimPopup">
@@ -116,6 +133,8 @@
         const folderClaims = document.getElementById('folderClaims')
         const folderClaimFolder = document.getElementById('folderClaim-folder')
         const folderClaimUserId = document.getElementById('folderClaim-userid')
+        
+        const remoteOpen = document.getElementById('remoteOpens')
 
         const users = document.getElementById('users')
         const usersWrapper = document.getElementById('usersWrapper')
@@ -126,23 +145,176 @@
         let me_data = null
         let user_list = []
         let folderClaim_list = []
+        let remoteOpen_list = []
         let slug_list = []
         let currently_editing = null
         const params = new URLSearchParams(window.location.search)
         let remoteId = params.get("remoteId");
         
+        let createdRemoteOpen = null
+        
         whoAmI()
         loadSlugs()
         loadUsers()
         loadFolderClaims()
+        loadRemoteOpens()
+        
+        function getLink() {
+            return `${location.href.replace(location.pathname, "")}/api/v1/remotes/open/${createdRemoteOpen.id}?secret=${createdRemoteOpen.secret}`
+        }
+        
+        function copyLink() {
+            navigator.clipboard.writeText(getLink())
+            alert("Copied")
+        }
 
-        function remoteOpen(slugId) {
+        function save(filename, data) {
+            const blob = new Blob([data], {type: 'text/csv'});
+            if(window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            }
+            else{
+                const elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.download = filename;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        }
+
+
+        function downloadHtml() {
+            save(`remoteOpen-${createdRemoteOpen.name}.html`, `<html>
+<head>
+<title>Remote Opener Redirector</title>
+</head>
+<body>
+<h1>Remote Opener</h1>
+<p>'${createdRemoteOpen.name}' (${createdRemoteOpen.id})</p>
+<p>Redirecting you. Have fun!</p>
+\<script>
+window.location.href = '${getLink()}'
+<\/script>
+</body>
+</html>`)
+        }
+        
+        function confirmDelete(name) {
+            return confirm(`Are you sure you want to delete ${name}?`)
+        }
+
+        function getSlugUrl(slugId) {
+            let slug = slug_list.find(elem => elem.id === slugId)
+            return `${location.href.replace(location.pathname, "")}/${slug.slug}`
+        }
+        
+        function regenerateRemoteOpen(id) {
+            let remoteOpenEntry = remoteOpen_list.find(elem => elem.id === id)
+            if (!remoteOpenEntry) {
+                alert("Couldn't find RemoteOpen")
+                return;
+            }
+            if(!confirm(`Do you really want to regenerate the secret of RemoteOpen '${remoteOpenEntry.name}' (${remoteOpenEntry.id})`))
+                return;
+
+            fetch(`/api/v1/remotes/regenerate/${remoteOpenEntry.id}`, {method: 'POST', headers: {"content-type": "application/json"}}).then(res => {
+                if(!res.ok) {
+                    alert("Error regenerating RemoteOpen")
+                    return;
+                }
+                res.json().then(data => {
+                    createdRemoteOpen = data
+                    handleRemoteOpen()
+                })
+            })
+        }
+        
+        function deleteRemoteOpen(id) {
+            let remoteOpen = remoteOpen_list.find(elem => elem.id === id)
+            if (!remoteOpen) {
+                alert("Couldn't find RemoteOpen")
+                return;
+            }
+            if(!confirmDelete(`The RemoteOpen '${remoteOpen.name}' (${remoteOpen.id})`))
+                return;
+            
+            fetch(`/api/v1/remotes/delete/${remote.id}`, {method: 'DELETE'}).then(res => {
+                if(!res.ok) {
+                    alert("Error deleting RemoteOpen")
+                    return;
+                }
+                alert("Deleted RemoteOpen");
+                loadRemoteOpens()
+            })
+        }
+        
+        function showRemoteOpens() {
+            let html = `<tr><th>Actions</th><th>Name</th><th>Id</th><th>Opens slug</th></tr>`
+            for(const remoteOpen of remoteOpen_list) {
+                html += `<tr>
+<td>
+<button onclick="regenerateRemoteOpen('${remoteOpen.id}')">Regenerate</button>
+<button onclick="setRemoteOpen('${remoteOpen.id}', null)">Park</button>
+<button onclick="deleteRemoteOpen('${remoteOpen.id}')" class="dangerous">Delete</button>
+</td>
+<td>${remoteOpen.name}</td>
+<td>${remoteOpen.id}</td>
+<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}">${remoteOpen.opensSlugId}</a>` : `-`}</td>
+</tr>`
+            }
+            remoteOpen.innerHTML = html
+        }
+
+        function loadRemoteOpens() {
+            fetch("/api/v1/remotes/all").then(res => {
+                res.json().then(data => {
+                    remoteOpen_list = data
+                    showRemoteOpens()
+                })
+            })
+        }
+        
+        function handleRemoteOpen() {
+            openPopup('remoteOpenPopup', null)
+        }
+        
+        function newRemoteOpen() {
+            let name = prompt("Enter a display name")
+            if(!name) return;
+            fetch(`/api/v1/remotes/new`, {method: 'POST', headers: {"content-type": "application/json"}, body: JSON.stringify({name: name})}).then(res => {
+                if(!res.ok) {
+                    alert("An error occurred")
+                    return
+                }
+                res.json().then(data => {
+                    createdRemoteOpen = data;
+                    handleRemoteOpen();
+                })
+                loadRemoteOpens();
+            })
+        }
+        
+        function setRemoteOpen(openId, slugId) {
+            fetch(`/api/v1/remotes/edit/${openId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({opensSlugId: slugId})}).then((response) => {
+                if(!response.ok){
+                    alert("An error occurred, check your input id")
+                    return;
+                }
+                if(slugId == null) {
+                    alert("RemoteOpen was parked successfully")
+                } else {
+                    alert("RemoteOpen was updates successfully")
+                }
+                loadRemoteOpens()
+            })
+        }
+
+        function chooseRemoteOpen(slugId) {
             for(const s of slug_list) {
                 if(s.id !== slugId) continue;
                 if(!remoteId) remoteId = prompt("Remote id")
-                fetch(`/api/v1/remote/send/${remoteId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({opensSlugId: s.id})}).then((response) => {
-                    if(!response.ok) alert("An error occurred, check your input id") 
-                })
+                setRemoteOpen(remoteId, s.id)
                 remoteId = null
                 return;
             }
@@ -204,10 +376,10 @@
         }
         
         function showFolderClaims() {
-            let html = `<tr>${me_data.isAdmin ?`<th>Actions</th>` : ``}<th>Path</th><th>UserId</th><th>User Name</th></tr>`
+            let html = `<tr>${me_data && me_data.isAdmin ?`<th>Actions</th>` : ``}<th>Path</th><th>UserId</th><th>User Name</th></tr>`
             for(const folderClaim of folderClaim_list) {
                 html += `<tr>
-${me_data.isAdmin ? `<td>
+${me_data && me_data.isAdmin ? `<td>
     <button onclick="editFolderClaim('${folderClaim.id}')">Edit</button>
 </td>` : ``}
 <td>${folderClaim.folderPath}</td>
@@ -274,7 +446,7 @@ ${me_data.isAdmin ? `<td>
             })
         }
         function deleteFolderClaim() {
-            if(!confirm(`Are you sure you want to delete the folderClaim of ${nameFromUserId(currently_editing.forUserId)} (${currently_editing.forUserId}):'${currently_editing.folderPath}'?`))
+            if(!confirmDelete(`the folderClaim of ${nameFromUserId(currently_editing.forUserId)} (${currently_editing.forUserId}):'${currently_editing.folderPath}'?`))
                 return
             fetch(`/api/v1/folders/${currently_editing.id}`, {method: "DELETE"}).then(response => {
                 if(response.ok) {
@@ -288,7 +460,7 @@ ${me_data.isAdmin ? `<td>
         }
         
         function deleteSlug() {
-            if(!confirm(`Are you sure you want to delete the slug '${currently_editing.slug}':'${currently_editing.folderPath}'?`))
+            if(!confirmDelete(`the slug '${currently_editing.slug}':'${currently_editing.folderPath}'?`))
                 return
             fetch(`/api/v1/slugs/${currently_editing.id}`, {method: "DELETE"}).then(response => {
                 if(response.ok) {
@@ -314,6 +486,8 @@ ${me_data.isAdmin ? `<td>
         }
         
         function deletePassword() {
+            if(!confirmDelete(`the password of ${currently_editing.slug}`))
+                return
             fetch(`/api/v1/slugs/${currently_editing.id}/password`, {method: 'DELETE'}).then(response => {
                 if (response.ok) {
                     alert("Password cleared!")
@@ -396,9 +570,9 @@ ${me_data.isAdmin ? `<td>
                 html += `<tr>
 <td>
     <button onclick="editSlug('${slug.id}')">Edit</button>
-    <button onclick="remoteOpen('${slug.id}')">Remote open</button>
+    <button onclick="chooseRemoteOpen('${slug.id}')">Remote open</button>
 </td>
-<td><a href="${location.href.replace(location.pathname, "")}/${slug.slug}">${slug.slug}</a></td>
+<td><a href="${getSlugUrl(slug.id)}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>
 <td>${slug.isPublic ? "Yes" : "No"}</td>
 <td>${slug.passwordSet ? "Yes" : "No"}</td>

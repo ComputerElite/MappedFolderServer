@@ -3,10 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace MappedFolderServer.Data;
 
-public class RemoteWebsocketData(string id, string? secret = null)
+public class RemoteOpenData(string id, string? secret = null)
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = id;
+
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
     [JsonPropertyName("secret")]
     public string? Secret { get; set; } = secret;
 
@@ -15,5 +18,14 @@ public class RemoteWebsocketData(string id, string? secret = null)
     [JsonPropertyName("expires")]
     public DateTime Expires { get; set; } = DateTime.UtcNow.AddMinutes(10);
 
-    public Guid? CreatedByUserId { get; set; } = null;
+    /// <summary>
+    /// User who created the remote open entry. Null if temporary created by a client.
+    /// </summary>
+    [JsonPropertyName("createdBy")]
+    public Guid? CreatedBy { get; set; } = null;
+
+    public bool CanBeAccessedBy(User loggedInUser)
+    {
+        return loggedInUser.IsAdmin || loggedInUser.Id == CreatedBy;
+    }
 }

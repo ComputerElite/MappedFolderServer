@@ -15,7 +15,7 @@
     <div id="qrcode" class="qrcode"></div>
     <script src="assets/qrcode.min.js"></script>
     <script>
-        let remoteWs = new WebSocket("/api/v1/remote/ws")
+        let remoteWs = new WebSocket("/api/v1/remotes/ws")
         const remoteId = document.getElementById('remoteId')
         
         function timeOut() {
@@ -32,7 +32,7 @@
             remoteId.innerText = data.id;
             new QRCode(document.getElementById("qrcode"), window.location.href.replace(window.location.pathname, "/") + "slugs?remoteId=" + data.id);
             if(data.secret) {
-                location.href = `/api/v1/remote/open/${data.id}?secret=${data.secret}`;
+                location.href = `/api/v1/remotes/open/${data.id}?secret=${data.secret}`;
             }
         }
         
