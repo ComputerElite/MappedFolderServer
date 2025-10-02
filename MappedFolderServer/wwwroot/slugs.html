@@ -36,13 +36,13 @@
         <div class="popup-content">
             <h3>Input remote id...</h3>
             <label>Remote id: <input type="text" id="remoteChooserId"></label>
-            <button onclick="//ToDo">Open on remote</button>
+            <button onclick="setRemoteOpen(document.getElementById('remoteChooserId').value, currently_editing.id); closePopup('remoteOpenChooserPopup');">Open on remote</button>
             <br>
             <h3>...or set RemoteOpen</h3>
             <table id="remoteOpenChooserTable">
                 
             </table>
-            <button onclick=" closePopup('remoteOpenChooserPopup')">Cancel</button>
+            <button onclick="closePopup('remoteOpenChooserPopup')">Cancel</button>
         </div>
     </div>
 
@@ -332,6 +332,7 @@ window.location.href = '${getLink()}'
                     remoteId = null
                     return
                 }
+                currently_editing = s
 
                 openPopup('remoteOpenChooserPopup', null)
                 let html = "<tr><th>Action</th><th>Name</th><th>Id</th></tr>"
