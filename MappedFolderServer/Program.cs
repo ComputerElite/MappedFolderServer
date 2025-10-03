@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using MappedFolderServer;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,6 +67,12 @@ builder.Services.AddAuthentication(options =>
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
             NameClaimType = "name"
+        };
+        
+        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+        options.TokenValidationParameters.SignatureValidator = (token, parameters) =>
+        {
+            return new JwtSecurityToken(token);
         };
 
         // Optionally handle events
