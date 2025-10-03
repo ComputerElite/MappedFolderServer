@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using MappedFolderServer;
 using MappedFolderServer.Auth;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +29,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddDbContext<AppDatabaseContext>();
 builder.Services.AddAuthentication("Cookies");
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-});
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = "AppCookie";
@@ -135,7 +133,10 @@ builder.Services.AddAuthorization(options =>
 });
 
 var app = builder.Build();
-app.UseForwardedHeaders();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    KnownNetworks = { new IPNetwork(IPAddress.Any, 0) }
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
