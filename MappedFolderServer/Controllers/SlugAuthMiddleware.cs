@@ -15,7 +15,7 @@ public class SlugAuthController : Controller
     [HttpPost]
     public async Task<IActionResult> NormalLogin([FromBody] LoginRequest login)
     {
-        if (!Config.Instance.UseOAuth)
+        if (Config.Instance.UseOAuth)
             return Problem(
                 "Username+password authentication has been disabled by your admin. Please use OAuth instead.");
         if (login.Password != Config.Instance.AdminPassword || login.Username != Config.Instance.AdminUser)
@@ -24,10 +24,10 @@ public class SlugAuthController : Controller
         }
         var claims = new List<Claim>
         {
-            new("AdminUserId", login.Username)
+            new(ClaimTypes.NameIdentifier, login.Username)
         };
 
-        var identity = new ClaimsIdentity(claims, "AppCookie");
+        var identity = new ClaimsIdentity(claims, "oidc");
         var principal = new ClaimsPrincipal(identity);
 
         await HttpContext.SignInAsync("AppCookie", principal);

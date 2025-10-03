@@ -3,6 +3,7 @@ using MappedFolderServer;
 using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 
@@ -138,6 +139,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
 
 var options = new RewriteOptions()
     .AddRewrite(@"^password\/?$", "password.html", skipRemainingRules: true)
