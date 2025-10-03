@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
@@ -72,7 +73,7 @@ builder.Services.AddAuthentication(options =>
         options.TokenValidationParameters.ValidateIssuerSigningKey = false;
         options.TokenValidationParameters.SignatureValidator = (token, parameters) =>
         {
-            return new JwtSecurityToken(token);
+            return new JsonWebToken(token);
         };
 
         // Optionally handle events
