@@ -135,7 +135,8 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    KnownNetworks = { new IPNetwork(IPAddress.Any, 0) }
+    KnownNetworks = { new IPNetwork(IPAddress.Any, 0) },
+    ForwardedProtoHeaderName = "X-Forwarded-Proto",
 });
 
 // Configure the HTTP request pipeline.
@@ -143,8 +144,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
 
 var options = new RewriteOptions()
     .AddRewrite(@"^password\/?$", "password.html", skipRemainingRules: true)
