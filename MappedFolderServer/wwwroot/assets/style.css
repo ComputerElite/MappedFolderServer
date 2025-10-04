@@ -26,6 +26,17 @@ button {
     padding: 5px;
 }
 
+footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background-color: var(--input-bg-color);
+}
+
 .qrcode {
     padding: 20px;
     background-color: #FFFFFF;

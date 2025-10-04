@@ -13,6 +13,11 @@
     <h1>Remote Open</h1>
     <p>Your code is <strong id="remoteId">Loading...</strong></p>
     <div id="qrcode" class="qrcode"></div>
+    <br>
+    <footer>
+        <p>MappedFolderServer made by ComputerElite</p>
+        <a href="https://github.com/ComputerElite/MappedFolderServer">GitHub</a>
+    </footer>
     <script src="assets/qrcode.min.js"></script>
     <script>
         let remoteWs = new WebSocket("/api/v1/remotes/ws")
