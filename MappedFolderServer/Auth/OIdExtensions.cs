@@ -26,10 +26,6 @@ public static class HttpContextExtensions
             Nickname = claims.FirstOrDefault(c => c.Type == "nickname")?.Value,
             Groups = claims.Where(c => c.Type == "groups").Select(c => c.Value).ToArray(),
         };
-        foreach (var claim in claims)
-        {
-            Console.WriteLine(claim.Type + ": " + claim.Value);
-        }
 
         return userClaims;
     }

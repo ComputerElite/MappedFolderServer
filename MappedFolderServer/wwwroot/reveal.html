@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MFS - Reveal.js</title>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<h1>Me</h1>
+<div id="me">
+    Loading
+</div>
+<h1>Reveal.js remotes</h1>
+<table id="remotes">
+    
+</table>
+<div id="qrcode" class="qrcode"></div>
+<script src="/assets/common.js"></script>
+<script>
+    let remote_list = []
+    
+    loadRemotes()
+    whoAmI();
+    
+    function showRemotes() {
+        let html = `<tr><th>Slug</th><th>Created</th><th>Action</th></tr>`
+        for(const item of remote_list) {
+            html += `<tr><td>${item.slugName}</td><td>${item.created}</td><td><a href="${item.remoteUrl}"><button>Control</button></a></td></tr>`
+        }
+        document.getElementById('remotes').innerHTML = html
+    }
+    function loadRemotes() {
+        fetch(`/api/v1/reveal/remotes`).then(res => res.json()).then((data) => {
+            remote_list = data
+            showRemotes()
+        }).catch(err => {
+            
+        })
+    }
+</script>
+</body>
+</html>

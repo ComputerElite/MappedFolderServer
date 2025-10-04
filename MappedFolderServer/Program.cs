@@ -100,7 +100,6 @@ builder.Services.AddAuthentication(options =>
 
                 var sub = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
                 var name = claims.FirstOrDefault(c => c.Type == "name")?.Value;
-                Console.WriteLine("Admin role: " + Config.Instance.OAuthAdminRole);
                 var isAdmin = claims.Any(c => c.Type == "groups" && c.Value== Config.Instance.OAuthAdminRole);
 
                 if (sub == null)
@@ -157,6 +156,7 @@ if (app.Environment.IsDevelopment())
 var options = new RewriteOptions()
     .AddRewrite(@"^password\/?$", "password.html", skipRemainingRules: true)
     .AddRewrite(@"^slugs\/?$", "slugs.html", skipRemainingRules: true)
+    .AddRewrite(@"^reveal\/?$", "reveal.html", skipRemainingRules: true)
     .AddRewrite(@"^forbidden\/?$", "forbidden.html", skipRemainingRules: true);
 app.UseRewriter(options);
 app.UseFileServer();

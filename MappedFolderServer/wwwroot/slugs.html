@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/assets/style.css">
-    <title>Edit slugs</title>
+    <title>Management</title>
 </head>
 <body>
     <h1>Me</h1>
@@ -134,6 +134,7 @@
             
         </div>
     </div>
+    <script src="/assets/common.js"></script>
     <script>
         const slugs = document.getElementById('slugs')
         const slugName = document.getElementById('slug-name')
@@ -156,7 +157,6 @@
         const slugPopup = document.getElementById('slugPopup')
         const folderClaimPopup = document.getElementById('folderClaimPop')
 
-        let me_data = null
         let user_list = []
         let folderClaim_list = []
         let remoteOpen_list = []
@@ -445,30 +445,6 @@ ${me_data && me_data.isAdmin ? `<td>
             })
         }
         
-        function showMe() {
-            if(!me_data) {
-                me.innerHTML = `<p>You're not logged in</p>`
-                return;
-            }
-            for(const e of document.getElementsByClassName("adminOnly")) {
-                e.style.display = me_data.isAdmin ? "block" : "none"
-            }
-
-            me.innerHTML = `<p>Logged in as: ${me_data.name}<br>IsAdmin: ${me_data.isAdmin}</p>`
-        }
-        
-        function whoAmI() {
-            fetch("/api/v1/users/me/db").then(res => {
-                if(!res.ok) {
-                    showMe()
-                    return
-                }
-                res.json().then(data => {
-                    me_data = data
-                    showMe()
-                })
-            })
-        }
         function deleteFolderClaim() {
             if(!confirmDelete(`the folderClaim of ${nameFromUserId(currently_editing.forUserId)} (${currently_editing.forUserId}):'${currently_editing.folderPath}'?`))
                 return
@@ -557,7 +533,6 @@ ${me_data && me_data.isAdmin ? `<td>
         
         function applyDisplay(className, display) {
             for(const e of document.getElementsByClassName(className)) {
-                console.log(e.tagName)
                 e.style.display = e.tagName.toLowerCase() === "tr" && display === "block" ? "table-row" : display;
             }
         }

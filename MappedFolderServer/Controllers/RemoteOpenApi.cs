@@ -66,7 +66,7 @@ public class RemoteOpenApi : Controller
         if (user == null) return Unauthorized();
         if (data.OpensSlugId != null)
         {
-            SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == data.OpensSlugId);
+            SlugEntry? slug = _db.Slugs.FirstOrDefault(x => x.Id == data.OpensSlugId);
             if (slug == null) return NotFound();
             if(!slug.CanBeAccessedBy(user)) return Forbid();
         }
@@ -119,7 +119,7 @@ public class RemoteOpenApi : Controller
             return NotFound(
                 "This RemoteOpenEntry isn't associated with any slug. Please update it from within the slug page");
         }
-        SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == wsData.OpensSlugId);
+        SlugEntry? slug = _db.Slugs.FirstOrDefault(x => x.Id == wsData.OpensSlugId);
         if (slug == null) return NotFound();
 
         await HttpContext.SignInAsync("AppCookie", SlugAuthController.GetClaim(slug, "RemoteUnlockedSlug"));
@@ -158,7 +158,7 @@ public class RemoteOpenApi : Controller
             return Ok();
         }
 
-        SlugEntry? slug = _db.Mappings.FirstOrDefault(x => x.Id == data.OpensSlugId);
+        SlugEntry? slug = _db.Slugs.FirstOrDefault(x => x.Id == data.OpensSlugId);
         if (slug == null)
         {
             return Forbid();

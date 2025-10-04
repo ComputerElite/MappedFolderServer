@@ -39,7 +39,7 @@ public class SlugAuthController : Controller
     public async Task<IActionResult> Submit(string slug, [FromBody]LoginRequest login)
     {
         
-        var entry = _db.Mappings.FirstOrDefault(p => p.Slug == slug);
+        var entry = _db.Slugs.FirstOrDefault(p => p.Slug == slug);
         if (entry == null) return NotFound();
 
         ClaimsPrincipal? principal = ConfirmPassword(entry, login.Password);

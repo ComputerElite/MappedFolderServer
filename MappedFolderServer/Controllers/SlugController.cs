@@ -1,15 +1,13 @@
-using System.Security.Claims;
 using System.Web;
 using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
 using MappedFolderServer.Util;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 
 namespace MappedFolderServer.Controllers;
 
-[Route("{slug:regex(^(?!slugs|password|forbidden|assets|api|slugs).*$)}/{*subpath}")]
+[Route("{slug:regex(^(?!slugs|password|forbidden|assets|api|slugs|reveal).*$)}/{*subpath}")]
 public class SlugController : Controller
 {
     private readonly ICurrentUserService _currentUser;
@@ -27,42 +25,21 @@ public class SlugController : Controller
         Console.WriteLine(slug);
         if (!SlugChecker.IsSlugValid(slug)) return NotFound();
         // Look up UUID in the database
-        var entry = _db.Mappings.FirstOrDefault(t => t.Slug == slug);
+        var entry = _db.Slugs.FirstOrDefault(t => t.Slug == slug);
         if (entry == null) return NotFound();
 
         User? loggedInUser = _currentUser.GetCurrentUser();
-        
-        if (!entry.IsPublic && (loggedInUser == null || !entry.CanBeAccessedBy(loggedInUser))) // access check only if not public. If user is admin skip the check
-        {
-            var privateUnlocked = User.Claims.Any(c => c.Type == "RemoteUnlockedSlug" && c.Value == entry.Id.ToString());
-            if (!entry.PasswordSet && !privateUnlocked)
-            {
-                // private
-                return NotFound();
-            }
-            var unlocked = User.Claims.Any(c => c.Type == "UnlockedSlug" && c.Value == entry.Id.ToString()) || privateUnlocked;
-            
-            if (loggedInUser != null && entry.CreatedBy != null) unlocked = loggedInUser.Id == entry.CreatedBy;
-            if (!unlocked)
-            {
-                // check for password in query string
-                ClaimsPrincipal? principal = null;
-                if (password != null)
-                {
-                    principal = SlugAuthController.ConfirmPassword(entry, password);
-                }
 
-                if (principal == null)
-                {
-                    return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/{slug}/{subpath}")}");
-                }
-                else
-                {
-                    // Sign in the user
-                    HttpContext.SignInAsync("AppCookie", principal);
-                }
-                // redirect to password prompt
-            }
+        switch (entry.AccessControl(User, loggedInUser, password, HttpContext))
+        {
+            case SlugEntry.SlugEntryAccessResult.AccessDenied:
+                return Redirect($"/password?slug={slug}&redirect_after={HttpUtility.UrlEncode($"/{slug}/{subpath}")}");
+            case SlugEntry.SlugEntryAccessResult.EmulateNotExisting:
+                return NotFound();
+            case SlugEntry.SlugEntryAccessResult.AccessGranted:
+                break;
+            default:
+                return Forbid();
         }
 
         // Resolve file path

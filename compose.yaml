@@ -1,6 +1,8 @@
 ﻿services:
   reveal-remote:
-    image: jochenwierum/revealjs-presentations
+    build:
+      context: ./reveal.js-remote
+      dockerfile: ./Dockerfile
   caddy:
     image: caddy
     restart: unless-stopped
@@ -10,6 +12,8 @@
       - ./caddy-conf:/etc/caddy:ro
   mappedfolderserver:
     image: mappedfolderserver
+    extra_hosts:
+      authentik: 192.168.178.86
     env_file:
       - .env
     build:
@@ -17,3 +21,4 @@
       dockerfile: MappedFolderServer/Dockerfile
     volumes:
       - ./data:/data:rw
+      - /home/computerelite/Documents/presentations/reveal.js:/presentations:ro

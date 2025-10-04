@@ -4,7 +4,8 @@ namespace MappedFolderServer.Data;
 
 public class AppDatabaseContext : DbContext
 {
-    public DbSet<SlugEntry>  Mappings { get; set; }
+    public DbSet<SlugEntry>  Slugs { get; set; }
+    public DbSet<RevealData> Reveal { get; set; }
     public DbSet<AuthenticatedSession> Sessions { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<FolderClaim> FolderClaims { get; set; }

@@ -1,5 +1,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
+using System.Web;
+using MappedFolderServer.Controllers;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 namespace MappedFolderServer.Data;
@@ -26,5 +30,46 @@ public class SlugEntry(string folderPath)
     public bool CanBeAccessedBy(User loggedInUser)
     {
         return loggedInUser.IsAdmin || loggedInUser.Id == CreatedBy;
+    }
+
+    public enum SlugEntryAccessResult
+    {
+        AccessGranted,
+        AccessDenied,
+        EmulateNotExisting
+    }
+
+    public SlugEntryAccessResult AccessControl(ClaimsPrincipal user, User? loggedInUser, string? providedPassword = null, HttpContext? httpContext = null)
+    {
+        if (IsPublic) return SlugEntryAccessResult.AccessGranted;
+        if (loggedInUser != null && CanBeAccessedBy(loggedInUser)) return SlugEntryAccessResult.AccessGranted;
+        // access check only if not public. If user is admin skip the check
+        var privateUnlocked = user.AlwaysHasAccessToSlug(this);
+        if (!PasswordSet && !privateUnlocked)
+        {
+            // Slug is private and wasn't unlocked privately
+            return SlugEntryAccessResult.EmulateNotExisting;
+        }
+        var unlocked = user.HasAccessToSlug(this) || privateUnlocked;
+        if (unlocked) return SlugEntryAccessResult.AccessGranted;
+        // check for password in query string
+        ClaimsPrincipal? principal = null;
+        if (providedPassword != null)
+        {
+            principal = SlugAuthController.ConfirmPassword(this, providedPassword);
+        }
+
+        if (principal == null)
+        {
+            // redirect to password prompt
+            return SlugEntryAccessResult.AccessDenied;
+        }
+        if(httpContext != null)
+        {
+            // Sign in the user
+            httpContext.SignInAsync("AppCookie", principal);
+        }
+
+        return SlugEntryAccessResult.AccessGranted;
     }
 }

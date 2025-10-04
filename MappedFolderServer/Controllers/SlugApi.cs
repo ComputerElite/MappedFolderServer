@@ -26,9 +26,9 @@ public class SlugApi : Controller
         if (loggedInUser == null) return Unauthorized();
         if (loggedInUser.IsAdmin)
         {
-            return Ok(_db.Mappings.ToList());
+            return Ok(_db.Slugs.ToList());
         }
-        return Ok(_db.Mappings.Where(x => x.CreatedBy == loggedInUser.Id).ToList());
+        return Ok(_db.Slugs.Where(x => x.CreatedBy == loggedInUser.Id).ToList());
     }
 
     [HttpPost]
@@ -48,12 +48,12 @@ public class SlugApi : Controller
             return BadRequest(new ApiError("Requested directory doesn't exist"));
         }
         
-        if (_db.Mappings.Any(x => x.Slug == slugEntry.Slug))
+        if (_db.Slugs.Any(x => x.Slug == slugEntry.Slug))
         {
             return BadRequest(new ApiError("Slug already exists, please choose a different slug"));
         }
         
-        _db.Mappings.Add(slugEntry);
+        _db.Slugs.Add(slugEntry);
         _db.SaveChanges();
         return Ok();
     }
@@ -63,10 +63,10 @@ public class SlugApi : Controller
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        SlugEntry? m = _db.Mappings.FirstOrDefault(x => x.Id == id);
+        SlugEntry? m = _db.Slugs.FirstOrDefault(x => x.Id == id);
         if (m == null) return NotFound();
         if (!m.CanBeAccessedBy(loggedInUser)) return Forbid();
-        if (_db.Mappings.Any(x => x.Slug == slugEntry.Slug && x.Id != id))
+        if (_db.Slugs.Any(x => x.Slug == slugEntry.Slug && x.Id != id))
         {
             return BadRequest(new ApiError("Slug already exists, please choose a different slug"));
         }
@@ -84,7 +84,7 @@ public class SlugApi : Controller
         {
             return BadRequest();
         }
-        _db.Mappings.Update(m);
+        _db.Slugs.Update(m);
         _db.SaveChanges();
         return Ok();
     }
@@ -94,10 +94,10 @@ public class SlugApi : Controller
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        SlugEntry? m = _db.Mappings.FirstOrDefault(x => x.Id == id);
+        SlugEntry? m = _db.Slugs.FirstOrDefault(x => x.Id == id);
         if (m == null) return NotFound();
         if (!m.CanBeAccessedBy(loggedInUser)) return Forbid();
-        _db.Mappings.Remove(m);
+        _db.Slugs.Remove(m);
         _db.SaveChanges();
         return Ok();
     }
@@ -107,12 +107,12 @@ public class SlugApi : Controller
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        SlugEntry? m = _db.Mappings.FirstOrDefault(x => x.Id == id);
+        SlugEntry? m = _db.Slugs.FirstOrDefault(x => x.Id == id);
         if (m == null) return NotFound();
         if (!m.CanBeAccessedBy(loggedInUser)) return Forbid();
         m.PasswordSalt = BCrypt.Net.BCrypt.GenerateSalt();
         m.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, m.PasswordSalt);
-        _db.Mappings.Update(m);
+        _db.Slugs.Update(m);
         _db.SaveChanges();
         return Ok();
     }
@@ -122,11 +122,11 @@ public class SlugApi : Controller
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        SlugEntry? m = _db.Mappings.FirstOrDefault(x => x.Id == id);
+        SlugEntry? m = _db.Slugs.FirstOrDefault(x => x.Id == id);
         if (m == null) return NotFound();
         if (!m.CanBeAccessedBy(loggedInUser)) return Forbid();
         m.PasswordHash = null;
-        _db.Mappings.Update(m);
+        _db.Slugs.Update(m);
         _db.SaveChanges();
         return Ok();
     }
