@@ -174,7 +174,7 @@
         loadRemoteOpens()
         
         function getLink() {
-            return `${location.href.replace(location.pathname, "")}/api/v1/remotes/open/${createdRemoteOpen.id}?secret=${createdRemoteOpen.secret}`
+            return `${getHost()}/api/v1/remotes/open/${createdRemoteOpen.id}?secret=${createdRemoteOpen.secret}`
         }
         
         function copyLink() {

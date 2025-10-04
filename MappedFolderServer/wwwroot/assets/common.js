@@ -24,3 +24,7 @@ function showMe() {
 
     me.innerHTML = `<p>Logged in as: ${me_data.name}<br>IsAdmin: ${me_data.isAdmin}</p>`
 }
+
+function getHost() {
+    return location.href.substring(0, location.href.indexOf(location.pathname))
+}
