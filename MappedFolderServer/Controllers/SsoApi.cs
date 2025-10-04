@@ -23,6 +23,13 @@ public class SsoApi : Controller
         return Ok(HttpContext.GetUserClaims());
     }
 
+    [HttpGet("signout")]
+    public async Task<IActionResult> Signout()
+    {
+        await HttpContext.SignOutAsync();
+        return Redirect("/");
+    }
+
     [HttpGet("start")]
     [Authorize(AuthenticationSchemes = "oidc")]
     public async Task<IActionResult> StartLogin()

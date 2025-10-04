@@ -22,7 +22,8 @@ function showMe() {
         e.style.display = me_data.isAdmin ? "block" : "none"
     }
 
-    me.innerHTML = `<p>Logged in as: ${me_data.name}<br>IsAdmin: ${me_data.isAdmin}</p>`
+    me.innerHTML = `<p>Logged in as: ${me_data.name}<br>IsAdmin: ${me_data.isAdmin}</p><br>
+    <a href="/api/v1/sso/signout"><button>Log out</button></a>`
 }
 
 function getHost() {
