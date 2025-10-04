@@ -13,7 +13,7 @@
   mappedfolderserver:
     image: mappedfolderserver
     extra_hosts:
-      authentik: 192.168.178.86
+      authentik: 192.168.178.29
     env_file:
       - .env
     build:

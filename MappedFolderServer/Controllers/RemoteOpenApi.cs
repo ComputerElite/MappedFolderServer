@@ -75,6 +75,7 @@ public class RemoteOpenApi : Controller
             CreatedBy = user.Id,
             Expires = DateTime.MaxValue,
             Name = data.Name,
+            Path = data.Path,
             OpensSlugId = data.OpensSlugId,
             Secret = RandomUtils.GenerateToken()
         };
@@ -129,7 +130,7 @@ public class RemoteOpenApi : Controller
             _db.RemoteOpenData.Remove(wsData);
             await _db.SaveChangesAsync();
         }
-        return Redirect($"/{slug.Slug}");
+        return Redirect($"/{slug.Slug}/{wsData.Path ?? ""}");
     }
 
     [HttpPost("edit/{remoteId}")]
@@ -170,7 +171,8 @@ public class RemoteOpenApi : Controller
         }
 
         remoteData.OpensSlugId = data.OpensSlugId;
-        if(data.Name != null) remoteData.Name = data.Name;
+        if (data.Name != null) remoteData.Name = data.Name;
+        if (data.Path != null) remoteData.Path = data.Path;
         if (remoteData.CreatedBy == null)
         {
             // Only set a secret and update expiration if it's a temporary open request
@@ -198,7 +200,7 @@ public class RemoteOpenApi : Controller
         
     }
 
-    private string GetId()
+    private string GenerateId()
     {
         return Random.Shared.Next(10000).ToString().PadLeft(4, '0');
     }
@@ -207,10 +209,10 @@ public class RemoteOpenApi : Controller
     private async Task HandleRemote(WebSocket webSocket)
     {
         await _db.RemoteOpenData.Where(x => x.Expires > DateTime.UtcNow).ExecuteDeleteAsync();
-        string id = GetId();
+        string id = GenerateId();
         while (_db.RemoteOpenData.Any(x => x.Id == id))
         {
-            id = GetId();
+            id = GenerateId();
         }
         // Generate Id and send to the client
         await webSocket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new RemoteOpenData(id))), WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);

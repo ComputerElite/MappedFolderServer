@@ -15,6 +15,9 @@ public class RemoteOpenData(string id, string? secret = null)
 
     [JsonPropertyName("opensSlugId")]
     public Guid? OpensSlugId { get; set; } = null;
+
+    [JsonPropertyName("path")]
+    public string? Path { get; set; } = null;
     [JsonPropertyName("expires")]
     public DateTime Expires { get; set; } = DateTime.UtcNow.AddMinutes(10);
 

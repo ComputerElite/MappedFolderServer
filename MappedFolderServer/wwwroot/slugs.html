@@ -34,6 +34,8 @@
 
     <div class="popup hidden" id="remoteOpenChooserPopup">
         <div class="popup-content">
+            <h3>Options</h3>
+            <label>Path: <input type="text" placeholder="the path to open" id="remoteChooserPath"></label>
             <h3>Input remote id...</h3>
             <label>Remote id: <input type="text" id="remoteChooserId"></label>
             <button onclick="setRemoteOpen(document.getElementById('remoteChooserId').value, currently_editing.id); closePopup('remoteOpenChooserPopup');">Open on remote</button>
@@ -310,7 +312,7 @@ window.location.href = '${getLink()}'
         }
         
         function setRemoteOpen(openId, slugId) {
-            fetch(`/api/v1/remotes/edit/${openId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({opensSlugId: slugId})}).then((response) => {
+            fetch(`/api/v1/remotes/edit/${openId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({opensSlugId: slugId, path: document.getElementById("remoteChooserPath").value})}).then((response) => {
                 if(!response.ok){
                     alert("An error occurred, check your input id")
                     return;
