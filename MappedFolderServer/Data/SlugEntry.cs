@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Web;
 using MappedFolderServer.Controllers;
 using Microsoft.AspNetCore.Authentication;
@@ -19,6 +20,20 @@ public class SlugEntry(string folderPath)
 
     public string FolderPath { get; set; } = folderPath;
     public string Slug { get; set; } = Guid.NewGuid().ToString();
+
+    [NotMapped]
+    public string displayName
+    {
+        get
+        {
+            if (Regex.IsMatch(Slug, @"^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$"))
+            {
+                return Path.GetFileName(FolderPath);
+            }
+            return Slug;
+        }
+    }
+
     public bool IsPublic { get; set; } = false;
     public bool PasswordSet => PasswordHash != null;
     [JsonIgnore]

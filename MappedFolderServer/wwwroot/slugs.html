@@ -34,6 +34,7 @@
 
     <div class="popup hidden" id="remoteOpenChooserPopup">
         <div class="popup-content">
+            <h2>Remote open <span id="remoteOpenChooserSlugName"></span></h2>
             <h3>Options</h3>
             <label>Path: <input type="text" placeholder="the path to open" id="remoteChooserPath"></label>
             <h3>Input remote id...</h3>
@@ -343,6 +344,7 @@ window.location.href = '${getLink()}'
                     html += `<tr><td><button onclick="setRemoteOpen('${o.id}', '${s.id}'); closePopup('remoteOpenChooserPopup'); loadRemoteOpens();">Set</button></td><td>${o.name}</td><td>${o.id}</td></tr>`
                 }
                 document.getElementById("remoteOpenChooserTable").innerHTML = html
+                document.getElementById("remoteOpenChooserSlugName").innerText = currently_editing.displayName
                 return;
             }
             alert("Slug not found")
