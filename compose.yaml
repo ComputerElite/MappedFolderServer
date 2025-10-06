@@ -2,7 +2,7 @@
   reveal-remote:
     build:
       context: ./reveal.js-remote
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
   caddy:
     image: caddy
     restart: unless-stopped
