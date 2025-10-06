@@ -68,7 +68,7 @@ public class RemoteOpenApi : Controller
         {
             SlugEntry? slug = _db.Slugs.FirstOrDefault(x => x.Id == data.OpensSlugId);
             if (slug == null) return NotFound();
-            if(!slug.CanBeAccessedBy(user)) return Forbid();
+            if(!slug.CanBeEditedBy(user)) return Forbid();
         }
         RemoteOpenData d = new RemoteOpenData(Guid.NewGuid().ToString())
         {
@@ -165,7 +165,7 @@ public class RemoteOpenApi : Controller
             return Forbid();
         }
 
-        if (!slug.CanBeAccessedBy(user))
+        if (!slug.CanBeEditedBy(user))
         {
             return Forbid();
         }

@@ -14,6 +14,8 @@ public class Config
 
     public string DbFilePath { get; set; } =
         "Database.db";
+
+    public bool DownloadFeatureEnabled { get; set; } = false;
     public string FrontendUrl { get; set; } = "http://192.168.178.24/";
 
     public bool UseOAuth { get; set; } = false;

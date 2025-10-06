@@ -42,7 +42,7 @@ public class SlugEntry(string folderPath)
     public string PasswordSalt { get; set; } = Guid.NewGuid().ToString();
 
 
-    public bool CanBeAccessedBy(User loggedInUser)
+    public bool CanBeEditedBy(User loggedInUser)
     {
         return loggedInUser.IsAdmin || loggedInUser.Id == CreatedBy;
     }
@@ -57,7 +57,7 @@ public class SlugEntry(string folderPath)
     public SlugEntryAccessResult AccessControl(ClaimsPrincipal user, User? loggedInUser, string? providedPassword = null, HttpContext? httpContext = null)
     {
         if (IsPublic) return SlugEntryAccessResult.AccessGranted;
-        if (loggedInUser != null && CanBeAccessedBy(loggedInUser)) return SlugEntryAccessResult.AccessGranted;
+        if (loggedInUser != null && CanBeEditedBy(loggedInUser)) return SlugEntryAccessResult.AccessGranted;
         // access check only if not public. If user is admin skip the check
         var privateUnlocked = user.AlwaysHasAccessToSlug(this);
         if (!PasswordSet && !privateUnlocked)
