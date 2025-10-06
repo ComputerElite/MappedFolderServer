@@ -19,7 +19,7 @@ public class RevealApi : Controller
     }
 
     [HttpGet("remotes")]
-    [Authorize(AuthenticationSchemes = "oidc")]
+    [Authorize("user")]
     public IActionResult All()
     {
         User? loggedInUser = _currentUser.GetCurrentUser();

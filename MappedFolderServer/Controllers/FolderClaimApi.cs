@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MappedFolderServer.Controllers;
 
 [Route("api/v1/folders")]
-[Authorize(AuthenticationSchemes = "oidc")]
+[Authorize("user")]
 public class FolderClaimApi : Controller
 {
     private readonly ICurrentUserService _currentUser;

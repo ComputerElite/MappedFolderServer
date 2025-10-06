@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MappedFolderServer.Controllers;
-[Authorize(AuthenticationSchemes = "oidc")]
+[Authorize("user")]
 [Route("/api/v1/users")]
 public class UserApi : Controller
 {

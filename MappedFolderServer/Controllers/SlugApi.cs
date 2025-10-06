@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MappedFolderServer.Controllers;
 
 [Route("api/v1/slugs")]
-[Authorize(AuthenticationSchemes = "oidc")]
+[Authorize("user")]
 public class SlugApi : Controller
 {
     private readonly ICurrentUserService _currentUser;

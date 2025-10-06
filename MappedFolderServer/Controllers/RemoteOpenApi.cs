@@ -25,7 +25,7 @@ public class RemoteOpenApi : Controller
     }
 
     [HttpDelete("delete/{id}")]
-    [Authorize(AuthenticationSchemes = "oidc")]
+    [Authorize("user")]
     public async Task<IActionResult> Delete(string id)
     {
         User? user = _currentUser.GetCurrentUser();
@@ -39,7 +39,7 @@ public class RemoteOpenApi : Controller
     }
     
     [HttpPost("regenerate/{id}")]
-    [Authorize(AuthenticationSchemes = "oidc")]
+    [Authorize("user")]
     public async Task<IActionResult> Regenerate(string id)
     {
         User? user = _currentUser.GetCurrentUser();
@@ -59,7 +59,7 @@ public class RemoteOpenApi : Controller
     
 
     [HttpPost("new")]
-    [Authorize(AuthenticationSchemes = "oidc")]
+    [Authorize("user")]
     public async Task<IActionResult> Create([FromBody] RemoteOpenData data)
     {
         User? user = _currentUser.GetCurrentUser();
@@ -90,7 +90,7 @@ public class RemoteOpenApi : Controller
     }
 
     [HttpGet("all")]
-    [Authorize(AuthenticationSchemes = "oidc")]
+    [Authorize("user")]
     public async Task<IActionResult> All()
     {
         User? user = _currentUser.GetCurrentUser();
@@ -134,7 +134,7 @@ public class RemoteOpenApi : Controller
     }
 
     [HttpPost("edit/{remoteId}")]
-    [Authorize(AuthenticationSchemes = "oidc")]
+    [Authorize("user")]
     public IActionResult Send([FromRoute]string remoteId, [FromBody] RemoteOpenData data)
     {
         User? user = _currentUser.GetCurrentUser();

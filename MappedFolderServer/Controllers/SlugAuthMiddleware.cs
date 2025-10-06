@@ -22,12 +22,30 @@ public class SlugAuthController : Controller
         {
             return Unauthorized();
         }
+
+        User? adminUser = _db.Users.FirstOrDefault(x => x.OidcId == "admin");
+        if (adminUser == null)
+        {
+            adminUser = new User
+            {
+                IsAdmin = true,
+                Name = login.Username,
+                OidcId = "admin"
+            };
+            _db.Users.Add(adminUser);
+        }
+        else
+        {
+            adminUser.Name = login.Username;
+        }
+        await  _db.SaveChangesAsync();
+        
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, login.Username)
+            new(ClaimTypes.NameIdentifier, "admin")
         };
 
-        var identity = new ClaimsIdentity(claims, "oidc");
+        var identity = new ClaimsIdentity(claims, "AppCookie");
         var principal = new ClaimsPrincipal(identity);
 
         await HttpContext.SignInAsync("AppCookie", principal);

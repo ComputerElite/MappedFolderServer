@@ -134,9 +134,9 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Admin", policy =>
+    options.AddPolicy("user", policy =>
     {
-        policy.RequireClaim("AdminUserId", "");
+        policy.RequireClaim(ClaimTypes.NameIdentifier);
     });
 });
 
