@@ -575,6 +575,7 @@ ${me_data && me_data.isAdmin ? `<td>
 <td>
     <button onclick="editSlug('${slug.id}')">Edit</button>
     <button onclick="chooseRemoteOpen('${slug.id}')">Remote open</button>
+    <a href="/api/v1/slugs/${slug.id}/download"><button>Download</button></a>
 </td>
 <td><a href="${getSlugUrl(slug.id)}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>

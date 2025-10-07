@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
+using MappedFolderServer.Scraping;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -156,99 +157,11 @@ public class SlugApi : Controller
         if (!m.CanBeEditedBy(loggedInUser)) return Forbid();
 
         bool includeRemote = true;
+        
+        IEnumerable<SlugEntry> allowedEntries = _db.Slugs.Where(x => x.IsPublic || x.CreatedBy == loggedInUser.Id || loggedInUser.IsAdmin);
 
-        string sourceFolderPath = m.FolderPath;
-        if (!Directory.Exists(sourceFolderPath))
-            return NotFound("Folder not found.");
-
-        using var memoryStream = new MemoryStream();
-        using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true);
-
-        var filesToInclude =
-            new HashSet<string>(Directory.GetFiles(sourceFolderPath, "*", SearchOption.AllDirectories));
-        var remoteAssets = new Dictionary<string, byte[]>(); // url -> file bytes
-
-        // Parse HTML files and find assets
-        foreach (var htmlFile in Directory.GetFiles(sourceFolderPath, "*.html", SearchOption.AllDirectories))
-        {
-            if (bannedFolders.Any(x => htmlFile.Contains(x))) continue;
-            if (IsOutOfBounds( htmlFile, sourceFolderPath)) continue;
-            Console.WriteLine($"Preprocessing {htmlFile}");
-            string htmlContent = System.IO.File.ReadAllText(htmlFile);
-            string htmlDir = Path.GetDirectoryName(htmlFile)!;
-            var assetPaths = ExtractAssetPaths(htmlContent);
-
-            foreach (var relPath in assetPaths)
-            {
-                if (relPath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Handle remote files
-                    if (includeRemote && !remoteAssets.ContainsKey(relPath))
-                    {
-                        try
-                        {
-                            Console.WriteLine($"Downloading {relPath}");
-                            var data = await httpClient.GetByteArrayAsync(relPath);
-                            remoteAssets[relPath] = data;
-                        }
-                        catch
-                        {
-                            // Skip failed downloads silently
-                        }
-                    }
-                }
-                else
-                {
-                    string absPath = Path.GetFullPath(Path.Combine(htmlDir, relPath));
-                    if (System.IO.File.Exists(absPath))
-                        filesToInclude.Add(absPath);
-                }
-            }
-        }
-
-        // Add all local files
-        foreach (var filePath in filesToInclude)
-        {
-            if (bannedFolders.Any(x => filePath.Contains(x))) continue;
-            if (IsOutOfBounds(filePath, sourceFolderPath)) continue;
-            string entryName = Path.GetRelativePath(sourceFolderPath, filePath).Replace("\\", "/");
-            Console.WriteLine("Zipping " + entryName);
-            if (filePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
-            {
-                string htmlContent = System.IO.File.ReadAllText(filePath);
-                string fixedHtml = await FixHtmlLinksAsync(htmlContent, filePath, sourceFolderPath, includeRemote,
-                    remoteAssets);
-                var entry = archive.CreateEntry(entryName, CompressionLevel.Fastest);
-                using var entryStream = new StreamWriter(entry.Open(), Encoding.UTF8);
-                entryStream.Write(fixedHtml);
-            }
-            else
-            {
-                var entry = archive.CreateEntry(entryName, CompressionLevel.Fastest);
-                using var entryStream = entry.Open();
-                using var fileStream = System.IO.File.OpenRead(filePath);
-                await fileStream.CopyToAsync(entryStream);
-            }
-        }
-
-        // Add downloaded remote files
-        if (includeRemote)
-        {
-            foreach (var kvp in remoteAssets)
-            {
-                string url = kvp.Key;
-                byte[] content = kvp.Value;
-
-                // Generate a safe local filename
-                string fileName = "remote/" + SanitizeFileName(url);
-                var entry = archive.CreateEntry(fileName, CompressionLevel.Fastest);
-                using var entryStream = entry.Open();
-                await entryStream.WriteAsync(content);
-            }
-        }
-        archive.Dispose();
-        memoryStream.Position = 0;
-        return File(memoryStream.ToArray(), "application/zip", $"{m.Slug}.zip");
+        Scraper s = new Scraper(allowedEntries);
+        return File(s.ScrapeSlug(m), "application/zip", $"{m.Slug}.zip");
     }
 
     private bool IsOutOfBounds(string filePath, string sourceFolderPath)

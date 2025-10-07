@@ -11,7 +11,8 @@
         "UseOAuth": true,
         "OAuthAuthority": "http://localhost:9000/application/o/mfs/",
         "OAuthClientId": "Y05hEioU5gmnCuqUpuCHqVaBJzMNrQeH6ZnJE9oB",
-        "OAuthClientSecret": "Ya2RCvF9FPJH81tut3aZnfTrfllT8PA29Ye5yl9UKWrPWLpbRKAKLz34veT6kK0nCVeZ2UeeH0NpnUpOvAVHWTPDNY3orjg9tqAAs3ODkhhPS7hDCR2iKT1X3sETxVtK"
+        "OAuthClientSecret": "Ya2RCvF9FPJH81tut3aZnfTrfllT8PA29Ye5yl9UKWrPWLpbRKAKLz34veT6kK0nCVeZ2UeeH0NpnUpOvAVHWTPDNY3orjg9tqAAs3ODkhhPS7hDCR2iKT1X3sETxVtK",
+        "DownloadFeatureEnabled": true
       }
     },
     "https": {
