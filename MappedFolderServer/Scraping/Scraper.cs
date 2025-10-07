@@ -61,6 +61,8 @@ public class Scraper
         }
 
         string relativePath = url.Substring(target.Length + 1);
+        relativePath = Path.GetFullPath(relativePath, "/").Substring(1);
+        Console.WriteLine($"{url} => {relativePath}");
         string slug = relativePath.Substring(0,  relativePath.IndexOf('/'));
         string path = relativePath.Substring(relativePath.IndexOf('/') + 1);
         if (!allowedSlugs.ContainsKey(slug)) throw new FileNotFoundException("File not found", relativePath);
@@ -151,10 +153,8 @@ public class Scraper
             Stream s = archive.CreateEntry(endFilePath, CompressionLevel.Fastest).Open();
             s.Write(data);
             s.Close();
-        }
+        }   
     }
-
-    
     
     public byte[] ScrapeSlug(SlugEntry slug)
     {
