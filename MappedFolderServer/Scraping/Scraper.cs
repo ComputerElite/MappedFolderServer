@@ -47,6 +47,7 @@ public class Scraper
     }
 
     public List<string> processedFiles = new List<string>();
+    private static readonly string[] bannedFolders = ["node_modules/", ".git/"];
 
     byte[] GetFile(string url, WebClient c)
     {
@@ -67,6 +68,7 @@ public class Scraper
         string path = relativePath.Substring(relativePath.IndexOf('/') + 1);
         if (!allowedSlugs.ContainsKey(slug)) throw new FileNotFoundException("File not found", relativePath);
         string filePath = Path.Combine(allowedSlugs[slug].FolderPath, path);
+        if(bannedFolders.Any(x => filePath.Contains(x))) throw new FileNotFoundException("File not found", filePath);
         if(!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
         return File.ReadAllBytes(filePath);
     }

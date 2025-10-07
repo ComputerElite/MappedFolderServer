@@ -140,9 +140,6 @@ public class SlugApi : Controller
         return Ok();
     }
 
-    private static readonly HttpClient httpClient = new HttpClient();
-    private static readonly string[] bannedFolders = ["node_modules/", ".git/"];
-
     [HttpGet("{id:guid}/download")]
     public async Task<IActionResult> Download([FromRoute] Guid id)
     {
