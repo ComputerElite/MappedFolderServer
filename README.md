@@ -13,7 +13,7 @@ A server made primarely to serve reveal.js presentations.
 ## Objective
 I have presentation I want to hold with reveal.js. However I do not want to rely on my laptop as a presentation device as we have 'Digitale Tafeln' (75" 4k Android Tablets).
 
-Therefore I want to host my presentations online so I can also remote control them via my phone, but still open them with minimal afford (e. g. open file on usb stick)
+Therefore I want to host my presentations online so I can also remote control them via my phone, but still open them with minimal effort (e. g. open file on usb stick)
 
 Presentations shouldn't be accessed by third parties however unless I explicitly want to. But I still want to manage them via a coherent file structure.
 
