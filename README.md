@@ -1,5 +1,5 @@
 # MappedFolderServer
-A server made primarely to serve reveal.js presentations.
+A server made primarily to serve reveal.js presentations.
 
 ## Features
 - File webserver with access control
@@ -8,13 +8,13 @@ A server made primarely to serve reveal.js presentations.
 - Slugs can be made private, public or password protected
 - As a user you can allow other devices to access a slug by inputting the other devices id from the main page
 - The admin user can decide which folders on the server other users are allowed to access
-- Can generate html files for putting on a usb stick which then opens a (private) presentation
+- Can generate html files for putting on an usb stick which then opens a (private) presentation
 - Allows to download a slug if you had access so you have an offline copy. This optionally includes content from remote webservers.
 
 ## Objective
 I want to hold presentation with reveal.js. However, I do not want to rely on my laptop as a presentation device as we have 'Digitale Tafeln' (Basically 75" 4k Android Tablets).
 
-Therefore, I want to host my presentations online so I can remotely control them via my phone, but still open them securely without revealing any credentials (e. g. open file on usb stick, but no password input)
+Therefore, I want to host my presentations online so I can remotely control them via my phone, but still open them securely without revealing any credentials (e.g. open file on usb stick, but no password input)
 
 Presentations shouldn't be accessed by third parties unless I explicitly want to. But I still want to manage them via a coherent file structure.
 
