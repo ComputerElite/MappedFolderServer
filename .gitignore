@@ -7,3 +7,4 @@ riderModule.iml
 /.idea/
 .env
 /data/
+compose.yaml

@@ -11,8 +11,6 @@
     volumes:
       - ./caddy-conf:/etc/caddy:ro
   mappedfolderserver:
-    extra_hosts:
-      authentik: 192.168.178.29
     restart: unless-stopped
     env_file:
       - .env
@@ -21,4 +19,4 @@
       dockerfile: MappedFolderServer/Dockerfile
     volumes:
       - ./data:/data:rw
-      - $PresentationFolder:/presentations:ro
+      - "$PresentationFolder:/presentations:ro"
