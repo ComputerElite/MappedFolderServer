@@ -11,9 +11,7 @@
     volumes:
       - ./caddy-conf:/etc/caddy:ro
   mappedfolderserver:
-    #image: mappedfolderserver
-    #extra_hosts:
-    #  authentik: 192.168.178.29
+    restart: unless-stopped
     env_file:
       - .env
     build:
@@ -21,4 +19,4 @@
       dockerfile: MappedFolderServer/Dockerfile
     volumes:
       - ./data:/data:rw
-      - /home/computerelite/Documents/presentations/reveal.js:/presentations:ro
+      - "$PresentationFolder:/presentations:ro"
