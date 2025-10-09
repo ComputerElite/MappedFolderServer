@@ -62,13 +62,13 @@ public class Scraper
             return c.DownloadData(url);
         }
 
-        string relativePath = url.Substring(target.Length + 1);
+        string relativePath = HttpUtility.UrlDecode(url.Substring(target.Length + 1));
         relativePath = Path.GetFullPath(relativePath, "/").Substring(1);
         //Console.WriteLine($"{url} => {relativePath}");
         string slug = relativePath.Substring(0,  relativePath.IndexOf('/'));
         string path = relativePath.Substring(relativePath.IndexOf('/') + 1);
         if (!allowedSlugs.ContainsKey(slug)) throw new FileNotFoundException("File not found", relativePath);
-        string filePath = Path.Combine(allowedSlugs[slug].FolderPath, HttpUtility.UrlDecode(path));
+        string filePath = Path.Combine(allowedSlugs[slug].FolderPath, path);
         if(bannedFolders.Any(x => filePath.Contains(x))) throw new FileNotFoundException("File not found", filePath);
         if(!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
         return File.ReadAllBytes(filePath);
