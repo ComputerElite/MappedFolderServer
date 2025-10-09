@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Web;
 using MappedFolderServer.Data;
 using Microsoft.AspNetCore.Mvc.Formatters;
 
@@ -14,8 +15,8 @@ public class Scraper
     List<string> _processingOrProcessed = new();
     List<string> _downloaded = new();
     List<Error> _errors = new();
-    Regex r = new("https:\\/\\/[^\"]+");
-    Regex relativeUrlRegex = new ("(href|src)=\"(?!http|data)([^\"]+)\"");
+    Regex r = new("https:\\/\\/[^\"']+");
+    Regex relativeUrlRegex = new ("(href|src)=[\"'](?!http|data)([^\"']+)[\"']");
     private Dictionary<string, SlugEntry> allowedSlugs = new();
 
     public Scraper(IEnumerable<SlugEntry> entries)
@@ -63,11 +64,11 @@ public class Scraper
 
         string relativePath = url.Substring(target.Length + 1);
         relativePath = Path.GetFullPath(relativePath, "/").Substring(1);
-        Console.WriteLine($"{url} => {relativePath}");
+        //Console.WriteLine($"{url} => {relativePath}");
         string slug = relativePath.Substring(0,  relativePath.IndexOf('/'));
         string path = relativePath.Substring(relativePath.IndexOf('/') + 1);
         if (!allowedSlugs.ContainsKey(slug)) throw new FileNotFoundException("File not found", relativePath);
-        string filePath = Path.Combine(allowedSlugs[slug].FolderPath, path);
+        string filePath = Path.Combine(allowedSlugs[slug].FolderPath, HttpUtility.UrlDecode(path));
         if(bannedFolders.Any(x => filePath.Contains(x))) throw new FileNotFoundException("File not found", filePath);
         if(!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
         return File.ReadAllBytes(filePath);
@@ -86,10 +87,9 @@ public class Scraper
             _errors.Add(new Error(url, -2));
             return;
         }
-        string endFilePath = uri.Host + uri.AbsolutePath;
+        string endFilePath = uri.Host + HttpUtility.UrlDecode(uri.AbsolutePath);
         string fileName = Path.GetFileName(uri.AbsolutePath);
         if (!fileName.Contains('.')) endFilePath += (endFilePath.EndsWith('/') ? "" : "/") + "index.html";
-        
         
         if (processedFiles.Contains(endFilePath)) return;
         byte[] data;
@@ -123,12 +123,13 @@ public class Scraper
             
                 if(relativeUrl.StartsWith('/')) {
                     absoluteUrl = uri.Scheme + "://" + uri.Host + relativeUrl;
+                    newContent = newContent.Replace("\"" + relativeUrl + "\"", MakeRelativeUrl(url, absoluteUrl));
                 }
                 else
                 {
                     absoluteUrl = (url.EndsWith('/') ? url : url.Substring(0, url.LastIndexOf('/') + 1)) + relativeUrl;
                 }
-                Console.WriteLine($"Relative: {relativeUrl}   from   {url} =>  Absolute URL: " + absoluteUrl);
+                //Console.WriteLine($"Relative: {relativeUrl}   from   {url} =>  Absolute URL: " + absoluteUrl);
                 absoluteUrl = absoluteUrl.Split('#')[0];
                 if (!Queued.Contains(absoluteUrl) && !_processingOrProcessed.Contains(absoluteUrl))
                 {
@@ -144,7 +145,7 @@ public class Scraper
                 }
 
                 string relative = MakeRelativeUrl(url, match.Value);
-                //Console.WriteLine(url + " -> " + match.Value + " = " + relative + " exists: " + newContent.Contains(match.Value));
+                Console.WriteLine(url + " -> " + match.Value + " = " + relative + " exists: " + newContent.Contains(match.Value));
                 newContent = newContent.Replace(match.Value + "\"", relative + "\"");
             }
             data = Encoding.UTF8.GetBytes(newContent);
