@@ -171,10 +171,10 @@
         let createdRemoteOpen = null
         
         whoAmI()
-        loadSlugs()
+        loadSlugs().then(res =>
+            loadRemoteOpens())
         loadUsers()
         loadFolderClaims()
-        loadRemoteOpens()
         
         function getLink() {
             return `${getHost()}/api/v1/remotes/open/${createdRemoteOpen.id}?secret=${createdRemoteOpen.secret}`
@@ -600,8 +600,8 @@ ${me_data && me_data.isAdmin ? `<td>
             }
         }
         
-        function loadSlugs() {
-            fetch("/api/v1/slugs/all").then(response => {
+        async function loadSlugs(){
+            await fetch("/api/v1/slugs/all").then(response => {
                 response.json().then(data => {
                     slug_list = data
                     updateView()
