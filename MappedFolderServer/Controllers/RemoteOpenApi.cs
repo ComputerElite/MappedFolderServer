@@ -73,7 +73,7 @@ public class RemoteOpenApi : Controller
         RemoteOpenData d = new RemoteOpenData(Guid.NewGuid().ToString())
         {
             CreatedBy = user.Id,
-            Expires = DateTime.MaxValue,
+            Expires = DateTime.UtcNow + TimeSpan.FromDays(365*10),
             Name = data.Name,
             Path = data.Path,
             OpensSlugId = data.OpensSlugId,
@@ -208,7 +208,7 @@ public class RemoteOpenApi : Controller
     
     private async Task HandleRemote(WebSocket webSocket)
     {
-        await _db.RemoteOpenData.Where(x => x.Expires > DateTime.UtcNow).ExecuteDeleteAsync();
+        await _db.RemoteOpenData.Where(x => x.Expires < DateTime.UtcNow).ExecuteDeleteAsync();
         string id = GenerateId();
         while (_db.RemoteOpenData.Any(x => x.Id == id))
         {
