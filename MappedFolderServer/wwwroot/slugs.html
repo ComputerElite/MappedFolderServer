@@ -297,7 +297,7 @@ window.location.href = '${getLink()}'
 </td>
 <td>${remoteOpen.name}</td>
 <td>${remoteOpen.id}</td>
-<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}">${remoteOpen.opensSlugId}${remoteOpen.path ?? ""}</a>` : `-`}</td>
+<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}">${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}</a>` : `-`}</td>
 </tr>`
             }
             remoteOpen.innerHTML = html
