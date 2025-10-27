@@ -70,7 +70,7 @@ builder.Services.AddAuthentication(options =>
             NameClaimType = "name",
             ValidateIssuerSigningKey = true,
             ValidateIssuer = true,
-            ValidateAudience = false,
+            ValidateAudience = true,
             ValidateLifetime = true
         };
         
