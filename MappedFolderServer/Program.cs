@@ -67,13 +67,15 @@ builder.Services.AddAuthentication(options =>
 
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
-            NameClaimType = "name"
-        };
-        
-        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
-        options.TokenValidationParameters.SignatureValidator = (token, parameters) =>
-        {
-            return new JsonWebToken(token);
+            NameClaimType = "name",
+            // Keep signature validation enabled for security
+            ValidateIssuerSigningKey = true,
+            // Relax issuer validation for Authentik compatibility
+            ValidateIssuer = false,
+            // Relax audience validation for Authentik compatibility
+            ValidateAudience = false,
+            // Still validate token lifetime
+            ValidateLifetime = true
         };
 
         // Optionally handle events
