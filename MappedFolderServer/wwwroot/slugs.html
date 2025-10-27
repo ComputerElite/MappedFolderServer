@@ -224,7 +224,7 @@ window.location.href = '${getLink()}'
 
         function getSlugUrl(slugId) {
             let slug = slug_list.find(elem => elem.id === slugId)
-            return `${location.href.replace(location.pathname, "")}/${slug.slug}`
+            return `${location.href.replace(location.pathname, "")}/${slug.slug}/`
         }
         
         function regenerateRemoteOpen(id) {
@@ -278,7 +278,7 @@ window.location.href = '${getLink()}'
 </td>
 <td>${remoteOpen.name}</td>
 <td>${remoteOpen.id}</td>
-<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}">${remoteOpen.opensSlugId}</a>` : `-`}</td>
+<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}">${remoteOpen.opensSlugId}${remoteOpen.path ?? ""}</a>` : `-`}</td>
 </tr>`
             }
             remoteOpen.innerHTML = html
@@ -331,17 +331,19 @@ window.location.href = '${getLink()}'
         function chooseRemoteOpen(slugId) {
             for(const s of slug_list) {
                 if(s.id !== slugId) continue;
-                if(remoteId) {
-                    setRemoteOpen(remoteId, s.id)
-                    remoteId = null
-                    return
-                }
                 currently_editing = s
 
                 openPopup('remoteOpenChooserPopup', null)
                 let html = "<tr><th>Action</th><th>Name</th><th>Id</th></tr>"
-                for(const o of remoteOpen_list) {
-                    html += `<tr><td><button onclick="setRemoteOpen('${o.id}', '${s.id}'); closePopup('remoteOpenChooserPopup'); loadRemoteOpens();">Set</button></td><td>${o.name}</td><td>${o.id}</td></tr>`
+
+                if(remoteId) {
+                    document.getElementById("remoteChooserId").value = remoteId;
+                    remoteId = null
+                    html = "<p>QR code scanned, use above!</p>"
+                } else {
+                    for(const o of remoteOpen_list) {
+                        html += `<tr><td><button onclick="setRemoteOpen('${o.id}', '${s.id}'); closePopup('remoteOpenChooserPopup'); loadRemoteOpens();">Set</button></td><td>${o.name}</td><td>${o.id}</td></tr>`
+                    }
                 }
                 document.getElementById("remoteOpenChooserTable").innerHTML = html
                 document.getElementById("remoteOpenChooserSlugName").innerText = currently_editing.displayName
