@@ -241,9 +241,9 @@ window.location.href = '${getLink()}'
             return confirm(`Are you sure you want to delete ${name}?`)
         }
 
-        function getSlugUrl(slugId) {
+        function getSlugUrl(slugId, absolute = true) {
             let slug = slug_list.find(elem => elem.id === slugId)
-            return `${location.href.replace(location.pathname, "")}/${slug.slug}/`
+            return `${absolute ? location.href.replace(location.pathname, "") + "/" : ""}${slug.slug}/`
         }
         
         function regenerateRemoteOpen(id) {
@@ -297,7 +297,7 @@ window.location.href = '${getLink()}'
 </td>
 <td>${remoteOpen.name}</td>
 <td>${remoteOpen.id}</td>
-<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}">${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}</a>` : `-`}</td>
+<td>${remoteOpen.opensSlugId ? `<a href="${getSlugUrl(remoteOpen.opensSlugId)}${remoteOpen.path ?? ""}">${getSlugUrl(remoteOpen.opensSlugId, false)}${remoteOpen.path ?? ""}</a>` : `-`}</td>
 </tr>`
             }
             remoteOpen.innerHTML = html
