@@ -30,10 +30,18 @@ public class SsoApi : Controller
         return Redirect("/");
     }
 
+    [HttpGet("startlogin")]
+    public IActionResult CheckLoginType()
+    {
+        if (Config.Instance.UseOAuth) return Redirect("/api/v1/sso/start");
+        return Redirect("/password");
+    }
+
     [HttpGet("start")]
     [Authorize(AuthenticationSchemes = "oidc")]
     public async Task<IActionResult> StartLogin()
     {
+        
         return Redirect("/slugs");
     }
 }

@@ -15,7 +15,7 @@ function whoAmI() {
 function showMe() {
     const me = document.getElementById("me")
     if(!me_data) {
-        me.innerHTML = `<p>You're not logged in</p><a href="/api/v1/sso/start"><button>Log in now</button></a>`
+        me.innerHTML = `<p>You're not logged in</p><a href="/api/v1/sso/startlogin"><button>Log in now</button></a>`
         return;
     }
     for(const e of document.getElementsByClassName("adminOnly")) {
