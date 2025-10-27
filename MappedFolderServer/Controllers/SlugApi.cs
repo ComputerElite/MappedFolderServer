@@ -78,6 +78,7 @@ public class SlugApi : Controller
         }
 
         slugEntry.FolderPath = Path.GetFullPath(slugEntry.FolderPath);
+        if(!slugEntry.FolderPath.EndsWith(Path.DirectorySeparatorChar)) slugEntry.FolderPath += Path.DirectorySeparatorChar;
         if (!loggedInUser.CanAccessFolder(slugEntry.FolderPath, _db))
         {
             return BadRequest(
@@ -96,6 +97,23 @@ public class SlugApi : Controller
         _db.Slugs.Update(m);
         _db.SaveChanges();
         return Ok();
+    }
+
+    [HttpGet("{id:guid}/list")]
+    public IActionResult ListFilesAndFolders([FromRoute] Guid id, [FromQuery] string? path)
+    {
+        User? loggedInUser = _currentUser.GetCurrentUser();
+        if (loggedInUser == null) return Unauthorized();
+        SlugEntry? m = _db.Slugs.FirstOrDefault(x => x.Id == id);
+        if (m == null) return NotFound();
+        if (!m.CanBeEditedBy(loggedInUser)) return Forbid();
+        string fullPath = Path.GetFullPath(path ?? "", m.FolderPath);
+        if (!fullPath.StartsWith(m.FolderPath)) return Forbid();
+        string directory = fullPath.Substring(0, fullPath.LastIndexOf('/'));
+        string file = fullPath.Substring(fullPath.LastIndexOf('/')).ToLower();
+        List<string> files = Directory.GetFiles(directory).Where(x => x.ToLower().Contains(file.ToLower())).ToList().ConvertAll(x => x.Substring(m.FolderPath.Length));
+        files.AddRange(Directory.GetDirectories(directory).Where(x => x.ToLower().Contains(file.ToLower())).ToList().ConvertAll(x => x.Substring(m.FolderPath.Length) + "/"));
+        return Ok(files);
     }
 
     [HttpDelete("{id:guid}")]

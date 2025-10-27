@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/assets/style.css">
     <title>Management</title>
+    <script src="/assets/awesomplete.min.js"></script>
 </head>
 <body>
     <h1>Me</h1>
@@ -36,7 +37,7 @@
         <div class="popup-content">
             <h2>Remote open <span id="remoteOpenChooserSlugName"></span></h2>
             <h3>Options</h3>
-            <label>Path: <input type="text" placeholder="the path to open" id="remoteChooserPath"></label>
+            <label>Path: <input type="text" onkeyUp="updatePaths()" class="awesomplete" autocomplete="off" placeholder="the path to open" id="remoteChooserPath"></label>
             <h3>Input remote id...</h3>
             <label>Remote id: <input type="text" id="remoteChooserId"></label>
             <button onclick="setRemoteOpen(document.getElementById('remoteChooserId').value, currently_editing.id); closePopup('remoteOpenChooserPopup');">Open on remote</button>
@@ -175,6 +176,24 @@
             loadRemoteOpens())
         loadUsers()
         loadFolderClaims()
+
+        const ac = new Awesomplete(document.getElementById("remoteChooserPath"), { minChars: 0 });
+
+        let basePath = "-"
+        function updatePaths() {
+            const path = document.getElementById("remoteChooserPath").value;
+            let newBasePath = path.substring(0, path.lastIndexOf("/")+1);
+            if(basePath === newBasePath) return;
+            basePath = newBasePath;
+
+            fetch(`/api/v1/slugs/${currently_editing.id}/list?path=${basePath}`)
+                .then(res => res.json())
+                .then(paths => {
+                    ac.list = paths
+                    ac.evaluate()
+                })
+                .catch(console.error);
+        }
         
         function getLink() {
             return `${getHost()}/api/v1/remotes/open/${createdRemoteOpen.id}?secret=${createdRemoteOpen.secret}`
@@ -545,6 +564,7 @@ ${me_data && me_data.isAdmin ? `<td>
         }
         
         function openPopup(id, defaultData) {
+            basePath = null
             document.getElementById(id).style.display = 'block';
             if(!currently_editing) {
                 currently_editing = defaultData
