@@ -67,7 +67,11 @@ builder.Services.AddAuthentication(options =>
 
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
-            NameClaimType = "name"
+            NameClaimType = "name",
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
         };
         
         options.TokenValidationParameters.ValidateIssuerSigningKey = false;
