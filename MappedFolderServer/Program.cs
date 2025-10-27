@@ -69,12 +69,6 @@ builder.Services.AddAuthentication(options =>
         {
             NameClaimType = "name"
         };
-        
-        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
-        options.TokenValidationParameters.SignatureValidator = (token, parameters) =>
-        {
-            return new JsonWebToken(token);
-        };
 
         // Optionally handle events
         options.Events = new OpenIdConnectEvents
