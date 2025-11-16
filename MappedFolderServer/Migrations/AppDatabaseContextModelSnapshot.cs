@@ -55,6 +55,38 @@ namespace MappedFolderServer.Migrations
                     b.ToTable("FolderClaims");
                 });
 
+            modelBuilder.Entity("MappedFolderServer.Data.GitRepo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Branch")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CurrentCommitHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EncryptedPassword")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastPulled")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GitRepo");
+                });
+
             modelBuilder.Entity("MappedFolderServer.Data.RemoteOpenData", b =>
                 {
                     b.Property<string>("Id")
@@ -146,6 +178,9 @@ namespace MappedFolderServer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("RepoId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -153,6 +188,8 @@ namespace MappedFolderServer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthenticatedSessionId");
+
+                    b.HasIndex("RepoId");
 
                     b.HasIndex("Slug");
 
@@ -186,6 +223,12 @@ namespace MappedFolderServer.Migrations
                     b.HasOne("MappedFolderServer.Data.AuthenticatedSession", null)
                         .WithMany("ClaimedSlugs")
                         .HasForeignKey("AuthenticatedSessionId");
+
+                    b.HasOne("MappedFolderServer.Data.GitRepo", "Repo")
+                        .WithMany()
+                        .HasForeignKey("RepoId");
+
+                    b.Navigation("Repo");
                 });
 
             modelBuilder.Entity("MappedFolderServer.Data.AuthenticatedSession", b =>

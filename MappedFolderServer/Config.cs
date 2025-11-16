@@ -24,7 +24,7 @@ public class Config
     public string OAuthClientSecret { get; set; } = "";
     
     public string OAuthAdminRole { get; set; } = "mfs-admin";
-    
+    public string EncryptionKey { get; set; } = ",md?>'?wewCfv{l</IkK04^r_LEclO-A";
     
     // FOR TESTING ONLY
     // Disabled when UseOAuth is true

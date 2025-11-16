@@ -17,7 +17,7 @@ public class SlugEntry(string folderPath)
     public Guid Id { get; set; }
     public Guid CreatedBy { get; set; }
     public Guid EditedBy { get; set; }
-
+    public GitRepo? Repo { get; set; }
     public string FolderPath { get; set; } = folderPath;
     public string Slug { get; set; } = Guid.NewGuid().ToString();
 
