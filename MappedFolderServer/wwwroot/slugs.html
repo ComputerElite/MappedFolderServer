@@ -66,7 +66,7 @@
         <div class="popup-content">
             <table>
                 <tr>
-                    <td>Folder path</td><td><input id="folderClaim-folder" type="text"></td>
+                    <td>Folder path</td><td><input type="text" id="folderClaim-folder"></td>
                 </tr>
                 <tr>
                     <td>userid</td><td><input id="folderClaim-userid" type="text"></td>
@@ -100,7 +100,7 @@
                     <td>Slug</td><td><input id="slug-name" type="text"></td>
                 </tr>
                 <tr>
-                    <td>Folder</td><td><input id="slug-folder" type="text"></td>
+                    <td>Folder</td><td><input type="text" onkeyUp="updateSlugPaths()" class="awesomplete" autocomplete="off" placeholder="the path to open" id="slug-folder"></td>
                 </tr>
                 <tr>
                     <td>Make Public</td><td><input id="slug-public" type="checkbox"></td>
@@ -191,6 +191,22 @@
                 .then(paths => {
                     ac.list = paths
                     ac.evaluate()
+                })
+                .catch(console.error);
+        }
+        const slugAc = new Awesomplete(document.getElementById("slug-folder"), { minChars: 0 });
+        let slugBasePath = "-"
+        function updateSlugPaths() {
+            const path = document.getElementById("slug-folder").value;
+            let newBasePath = path.substring(0, path.lastIndexOf("/")+1);
+            if(slugBasePath === newBasePath) return;
+            slugBasePath = newBasePath;
+
+            fetch(`/api/v1/slugs/dirs?path=${slugBasePath}`)
+                .then(res => res.json())
+                .then(paths => {
+                    slugAc.list = paths
+                    slugAc.evaluate()
                 })
                 .catch(console.error);
         }
@@ -457,6 +473,10 @@ ${me_data && me_data.isAdmin ? `<td>
                 res.json().then(data => {
                     folderClaim_list = data
                     showFolderClaims()
+                    for(const c of folderClaim_list) {
+                        slugBasePath = c.folderPath
+                        slugFolder.value = c.folderPath + (c.folderPath.endsWith("/") ? "" : "/")
+                    }
                 })
             })
         }
