@@ -597,8 +597,13 @@ ${me_data && me_data.isAdmin ? `<td>
                     password: slugGitPassword.value,
                 }
             }
-            e.
+            let textBefore = e.innerText
+            let onClickBefore = e.onclick
+            e.onclick = () => {alert("Creating, hang tight...")}
+            e.innerText = "Creating slug"
             fetch("/api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                e.innerText = textBefore
+                e.onclick = onClickBefore
                 if(response.ok) {
                     closePopup('slugPopup')
                     loadSlugs()
@@ -678,6 +683,7 @@ ${me_data && me_data.isAdmin ? `<td>
     <button onclick="chooseRemoteOpen('${slug.id}')">Remote open</button>
     <a href="/api/v1/slugs/${slug.id}/download"><button>Download</button></a>
     ${slug.repo == null ? "" : `<button onclick="gitPull('${slug.id}', this)">git pull</button>`}
+    ${slug.repo == null ? "" : `<button onclick="alert('${getHost()}/api/v1/slugs/${slug.id}/git/pull')">get webhook url</button>`}
 </td>
 <td><a href="${getSlugUrl(slug.id)}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>
