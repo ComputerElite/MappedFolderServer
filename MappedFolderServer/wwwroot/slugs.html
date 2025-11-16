@@ -16,6 +16,7 @@
         
     </table>
     <button onclick="newSlug()">New Slug</button>
+    <button onclick="newSlug(true)">New Slug from git</button>
     <h1>Remote Open Entries</h1>
     <table id="remoteOpens">
         
@@ -105,11 +106,23 @@
                 <tr>
                     <td>Make Public</td><td><input id="slug-public" type="checkbox"></td>
                 </tr>
+                <tr class="whenGit">
+                    <td>Git url</td><td><input id="slug-git-url" type="text"></td>
+                </tr>
+                <tr class="whenGit">
+                    <td>branch</td><td><input id="slug-git-branch" value="main" type="text"></td>
+                </tr>
+                <tr class="whenGit">
+                    <td>Username (if private)</td><td><input id="slug-git-username" type="text"></td>
+                </tr>
+                <tr class="whenGit">
+                    <td>Password (if private)</td><td><input id="slug-git-password" type="password"></td>
+                </tr>
             </table>
             <table>
                 <tr>
                     <td class="whenExisting"><button onclick="saveSlug()">Save</button></td>
-                    <td class="whenNew"><button onclick="createSlug()">Create</button></td>
+                    <td class="whenNew"><button onclick="createSlug(this)">Create</button></td>
                     <td><button onclick="closePopup('slugPopup')">Cancel</button></td>
                 </tr>
             </table>
@@ -144,6 +157,10 @@
         const slugName = document.getElementById('slug-name')
         const slugFolder = document.getElementById('slug-folder')
         const slugPublic = document.getElementById('slug-public')
+        const slugGitUrl = document.getElementById('slug-git-url')
+        const slugGitBranch = document.getElementById('slug-git-branch')
+        const slugGitUsername = document.getElementById('slug-git-username')
+        const slugGitPassword = document.getElementById('slug-git-password')
         const newPassword = document.getElementById('newPassword')
         const newPasswordConfirm = document.getElementById('newPasswordConfirm')
         
@@ -569,11 +586,18 @@ ${me_data && me_data.isAdmin ? `<td>
                 }
             })
         }
-        function createSlug() {
+        function createSlug(e) {
             const slug = {
                 folderPath: slugFolder.value,
-                isPublic: slugPublic.checked == true
+                isPublic: slugPublic.checked == true,
+                repo: currently_editing.repo == null ? null : {
+                    url: slugGitUrl.value,
+                    branch: slugGitBranch.value,
+                    username: slugGitUsername.value,
+                    password: slugGitPassword.value,
+                }
             }
+            e.
             fetch("/api/v1/slugs", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
                 if(response.ok) {
                     closePopup('slugPopup')
@@ -617,35 +641,58 @@ ${me_data && me_data.isAdmin ? `<td>
             if(!path.endsWith("/")) return path + "/";
             return path;
         }
-        
+        let createGit = false
         function openSlugPopup() {
-            openPopup('slugPopup', {folderPath: trailingSlash(user_list.length > 0 || folderClaim_list.length === 0 ? "" : folderClaim_list[0].folderPath), slug: "", isPublic: false, id: null})
+            openPopup('slugPopup', {folderPath: trailingSlash(user_list.length > 0 || folderClaim_list.length === 0 ? "" : folderClaim_list[0].folderPath), slug: "", isPublic: false, id: null, repo: createGit ? {} : null})
             slugName.value = currently_editing.slug;
             slugFolder.value = currently_editing.folderPath;
             slugPublic.checked = currently_editing.isPublic;
+
+            if(currently_editing.repo != null) {
+                applyDisplay("whenGit", "block")
+            } else {
+                applyDisplay("whenGit", "none")
+            }
+        }
+        
+        function gitPull(id, e) {
+            e.onclick = () => {alert("Still pulling, hang tight")}
+            e.innerText = "pulling repo..."
+            fetch(`/api/v1/slugs/${id}/git/pull`, {method: "POST"}).then(response => {
+                if (response.ok) {
+                    alert("Updated repo")
+                } else {
+                    error("Error updating repo", response)
+                }
+                loadSlugs()
+            })
         }
 
         function updateView() {
             let filteredSlugs = slug_list
-            let html = `<tr><th>Actions</th><th>Slug</th><th>Path</th><th>Public?</th><th>Password Set?</th></tr>`
+            let html = `<tr><th>Actions</th><th>Slug</th><th>Path</th><th>Public?</th><th>Password Set?</th><th>Repo</th><th>Branch</th></tr>`
             for(const slug of filteredSlugs) {
                 html += `<tr>
 <td>
     <button onclick="editSlug('${slug.id}')">Edit</button>
     <button onclick="chooseRemoteOpen('${slug.id}')">Remote open</button>
     <a href="/api/v1/slugs/${slug.id}/download"><button>Download</button></a>
+    ${slug.repo == null ? "" : `<button onclick="gitPull('${slug.id}', this)">git pull</button>`}
 </td>
 <td><a href="${getSlugUrl(slug.id)}">${slug.slug}</a></td>
 <td>${slug.folderPath}</td>
 <td>${slug.isPublic ? "Yes" : "No"}</td>
 <td>${slug.passwordSet ? "Yes" : "No"}</td>
+<td><a href="${slug.repo ? slug.repo.url : ""}">${slug.repo ? slug.repo.url : "-"}</a></td>
+<td>${slug.repo ? `${slug.repo.branch}@${slug.repo.currentCommitHash}` : "-"}</td>
 </tr>`
             }
             slugs.innerHTML = html
         }
         
-        function newSlug() {
+        function newSlug(git = false) {
             currently_editing = null
+            createGit = git;
             openSlugPopup()
         }
         

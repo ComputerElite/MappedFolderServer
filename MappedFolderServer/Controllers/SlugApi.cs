@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using MappedFolderServer.Auth;
 using MappedFolderServer.Data;
 using MappedFolderServer.Scraping;
+using MappedFolderServer.Util;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,10 +31,10 @@ public class SlugApi : Controller
         if (loggedInUser == null) return Unauthorized();
         if (loggedInUser.IsAdmin)
         {
-            return Ok(_db.Slugs.ToList());
+            return Ok(_db.Slugs.Include(x => x.Repo).ToList());
         }
 
-        return Ok(_db.Slugs.Where(x => x.CreatedBy == loggedInUser.Id).ToList());
+        return Ok(_db.Slugs.Include(x => x.Repo).Where(x => x.CreatedBy == loggedInUser.Id).ToList());
     }
     
     [HttpGet("dirs")]
@@ -85,9 +86,30 @@ public class SlugApi : Controller
             }
         }
 
+        if (slugEntry.Repo != null)
+        {
+            if(slugEntry.Repo.Password != null) slugEntry.Repo.EncryptedPassword = TokenEncryptor.Encrypt(slugEntry.Repo.Password);
+            ApiError? e = slugEntry.Repo.Init(slugEntry.FolderPath);
+            if (e != null)
+            {
+                return BadRequest(e);
+            }
+        }
+
         _db.Slugs.Add(slugEntry);
         _db.SaveChanges();
         return Ok();
+    }
+
+    [HttpPost("{id:guid}/git/pull")]
+    public IActionResult GitPull([FromRoute] Guid id)
+    {
+        SlugEntry? m = _db.Slugs.Include(slugEntry => slugEntry.Repo).FirstOrDefault(x => x.Id == id);
+        if (m == null) return NotFound();
+        if (m.Repo == null) return Ok();
+        ApiError? error = m.Repo.Update(m.FolderPath);
+        _db.SaveChanges();
+        return error == null ? Ok() : BadRequest(error);
     }
 
     [HttpPost("{id:guid}")]
