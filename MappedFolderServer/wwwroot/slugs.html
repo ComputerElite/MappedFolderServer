@@ -613,8 +613,13 @@ ${me_data && me_data.isAdmin ? `<td>
             folderClaimUserId.value = currently_editing.forUserId;
         }
         
+        function trailingSlash(path) {
+            if(!path.endsWith("/")) return path + "/";
+            return path;
+        }
+        
         function openSlugPopup() {
-            openPopup('slugPopup', {folderPath: "", slug: "", isPublic: false, id: null})
+            openPopup('slugPopup', {folderPath: trailingSlash(user_list.length > 0 || folderClaim_list.length === 0 ? "" : folderClaim_list[0].folderPath), slug: "", isPublic: false, id: null})
             slugName.value = currently_editing.slug;
             slugFolder.value = currently_editing.folderPath;
             slugPublic.checked = currently_editing.isPublic;
