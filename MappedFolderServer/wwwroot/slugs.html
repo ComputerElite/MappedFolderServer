@@ -123,7 +123,7 @@
             </table>
             <table>
                 <tr>
-                    <td class="whenExisting"><button onclick="saveSlug()">Save</button></td>
+                    <td class="whenExisting"><button onclick="saveSlug(this)">Save</button></td>
                     <td class="whenNew"><button onclick="createSlug(this)">Create</button></td>
                     <td><button onclick="closePopup('slugPopup')">Cancel</button></td>
                 </tr>
@@ -303,6 +303,10 @@ window.location.href = '${getLink()}'
         }
         
         function error(msg, response) {
+            if(response.status === 401) {
+                alert(`${msg}: Your session expired or you're not logged in. Please log in again`)
+                return;
+            }
             response.json().then(data => {
                 if(data.error) {
                     alert(`${msg}: ${data.error}`)
@@ -577,9 +581,21 @@ ${me_data && me_data.isAdmin ? `<td>
                 folderPath: slugFolder.value,
                 isPublic: slugPublic.checked == true,
                 slug: slugName.value,
-                id: currently_editing.Id
+                id: currently_editing.Id,
+                repo: currently_editing.repo == null ? null : {
+                    url: slugGitUrl.value,
+                    branch: slugGitBranch.value,
+                    username: slugGitUsername.value,
+                    password: slugGitPassword.value ? null : slugGitPassword.value,
+                }
             }
+            let textBefore = e.innerText
+            let onClickBefore = e.onclick
+            e.onclick = () => {alert("Creating, hang tight...")}
+            e.innerText = "Creating slug"
             fetch(`/api/v1/slugs/${currently_editing.id}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(slug)}).then(response => {
+                e.innerText = textBefore
+                e.onclick = onClickBefore
                 if(response.ok) {
                     closePopup('slugPopup')
                     loadSlugs()
@@ -657,6 +673,10 @@ ${me_data && me_data.isAdmin ? `<td>
 
             if(currently_editing.repo != null) {
                 applyDisplay("whenGit", "block")
+                slugGitUrl.value = currently_editing.repo;
+                slugGitBranch.value = currently_editing.branch;
+                slugGitUsername.value = currently_editing.repo.username;
+                slugGitPassword.value = currently_editing.repo.password;
             } else {
                 applyDisplay("whenGit", "none")
             }

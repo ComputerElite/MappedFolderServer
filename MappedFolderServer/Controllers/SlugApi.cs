@@ -118,7 +118,7 @@ public class SlugApi : Controller
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        SlugEntry? m = _db.Slugs.FirstOrDefault(x => x.Id == id);
+        SlugEntry? m = _db.Slugs.Include(slugEntry => slugEntry.Repo).FirstOrDefault(x => x.Id == id);
         if (m == null) return NotFound();
         if (!m.CanBeEditedBy(loggedInUser)) return Forbid();
         if (_db.Slugs.Any(x => x.Slug == slugEntry.Slug && x.Id != id))
@@ -138,9 +138,26 @@ public class SlugApi : Controller
         m.Slug = slugEntry.Slug;
         m.FolderPath = slugEntry.FolderPath;
         m.IsPublic = slugEntry.IsPublic;
+
         if (!Directory.Exists(slugEntry.FolderPath))
         {
             return BadRequest();
+        }
+        
+        // as slugs can only be added to git once on creation we will only need to check for repo updates when the repo already exists in the db
+        if (m.Repo != null && slugEntry.Repo != null)
+        {
+            bool updateRepo = m.Repo.Branch != slugEntry.Repo.Branch || m.Repo.Username != slugEntry.Repo.Username || m.Repo.Password != null;
+            m.Repo.Url = slugEntry.Repo!.Url;
+            m.Repo.Branch = slugEntry.Repo.Branch;
+            m.Repo.Username = slugEntry.Repo.Username;
+            if (slugEntry.Repo!.Password != null)
+                m.Repo.EncryptedPassword = TokenEncryptor.Encrypt(slugEntry.Repo.Password);
+            if (updateRepo)
+            {
+                ApiError? e = m.Repo.Update(m.FolderPath);
+                if (e != null) return BadRequest(e);
+            }
         }
 
         _db.Slugs.Update(m);
