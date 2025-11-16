@@ -98,6 +98,23 @@ public class SlugApi : Controller
         _db.SaveChanges();
         return Ok();
     }
+    [HttpGet("/dirs")]
+    public IActionResult ListFolders([FromQuery] string? path)
+    {
+        User? loggedInUser = _currentUser.GetCurrentUser();
+        if (loggedInUser == null) return Unauthorized();
+        string fullPath = Path.GetFullPath(path ?? "", "/");
+        if (!loggedInUser.CanAccessFolder(fullPath, _db))
+        {
+            // This behavior may be a bit weird but it ensures when eg. requesting '/' that you get the directories you can access. e.g. '/usera' or '/userb'
+            return Ok(_db.FolderClaims.Where(x => x.ForUserId == loggedInUser.Id).ToList()
+                .ConvertAll(x => x.FolderPath.EndsWith("/") ? x.FolderPath : x.FolderPath + "/"));
+        }
+        string directory = fullPath.Substring(0, fullPath.LastIndexOf('/'));
+        string file = fullPath.Substring(fullPath.LastIndexOf('/')).ToLower();
+        List<string> folders = Directory.GetDirectories(directory).Where(x => x.ToLower().Contains(file.ToLower())).ToList().ConvertAll(x => x + "/");
+        return Ok(folders);
+    }
 
     [HttpGet("{id:guid}/list")]
     public IActionResult ListFilesAndFolders([FromRoute] Guid id, [FromQuery] string? path)
