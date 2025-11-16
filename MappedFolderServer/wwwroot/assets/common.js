@@ -29,6 +29,7 @@ function showMe() {
 function getHost() {
     return location.href.substring(0, location.href.indexOf(location.pathname))
 }
+
 setupPopups()
 function setupPopups() {
     for(const e of document.getElementsByClassName("popup")) {
