@@ -49,14 +49,14 @@ public class SlugApi : Controller
                 new ApiError("You're not allowed to access this directory. Please ask the admin for permission"));
         }
 
-        if (!Directory.Exists(slugEntry.FolderPath))
-        {
-            return BadRequest(new ApiError("Requested directory doesn't exist"));
-        }
-
         if (_db.Slugs.Any(x => x.Slug == slugEntry.Slug))
         {
             return BadRequest(new ApiError("Slug already exists, please choose a different slug"));
+        }
+        
+        if (!Directory.Exists(slugEntry.FolderPath))
+        {
+            Directory.CreateDirectory(slugEntry.FolderPath);
         }
 
         _db.Slugs.Add(slugEntry);
