@@ -102,6 +102,7 @@ public class SlugApi : Controller
     }
 
     [HttpPost("{id:guid}/git/pull")]
+    [AllowAnonymous]
     public IActionResult GitPull([FromRoute] Guid id)
     {
         SlugEntry? m = _db.Slugs.Include(slugEntry => slugEntry.Repo).FirstOrDefault(x => x.Id == id);
