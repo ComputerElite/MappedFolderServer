@@ -257,13 +257,26 @@ window.location.href = '${getLink()}'
 
             fetch(`/api/v1/remotes/regenerate/${remoteOpenEntry.id}`, {method: 'POST', headers: {"content-type": "application/json"}}).then(res => {
                 if(!res.ok) {
-                    alert("Error regenerating RemoteOpen")
+                    error("Error regenerating RemoteOpen", res)
                     return;
                 }
                 res.json().then(data => {
                     createdRemoteOpen = data
                     handleRemoteOpen()
                 })
+            })
+        }
+        
+        function error(msg, response) {
+            response.json().then(data => {
+                if(data.error) {
+                    alert(`${msg}: ${data.error}`)
+                }
+                if(data.msg) {
+                    alert(`${msg}: ${data.msg}`)
+                }
+            }).catch(error => {
+                alert(msg)
             })
         }
         
@@ -278,7 +291,7 @@ window.location.href = '${getLink()}'
             
             fetch(`/api/v1/remotes/delete/${remoteOpen.id}`, {method: 'DELETE'}).then(res => {
                 if(!res.ok) {
-                    alert("Error deleting RemoteOpen")
+                    error("Error deleting RemoteOpen", res)
                     return;
                 }
                 alert("Deleted RemoteOpen");
@@ -321,7 +334,7 @@ window.location.href = '${getLink()}'
             if(!name) return;
             fetch(`/api/v1/remotes/new`, {method: 'POST', headers: {"content-type": "application/json"}, body: JSON.stringify({name: name})}).then(res => {
                 if(!res.ok) {
-                    alert("An error occurred")
+                    error("An error occurred", res)
                     return
                 }
                 res.json().then(data => {
@@ -335,7 +348,7 @@ window.location.href = '${getLink()}'
         function setRemoteOpen(openId, slugId) {
             fetch(`/api/v1/remotes/edit/${openId}`, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({opensSlugId: slugId, path: document.getElementById("remoteChooserPath").value})}).then((response) => {
                 if(!response.ok){
-                    alert("An error occurred, check your input id")
+                    error("An error occurred, check your input id", response)
                     return;
                 }
                 if(slugId == null) {
@@ -382,7 +395,7 @@ window.location.href = '${getLink()}'
                     closePopup('folderClaimPopup');
                     loadFolderClaims()
                 } else {
-                    alert("An error occurred while creating")
+                    error("An error occurred while creating", response)
                 }
             })
         }
@@ -396,8 +409,7 @@ window.location.href = '${getLink()}'
                     closePopup('folderClaimPopup');
                     loadFolderClaims()
                 } else {
-                    alert("An error occurred while creating")
-
+                    error("An error occurred while creating", response)
                 }
             })
         }
@@ -480,7 +492,7 @@ ${me_data && me_data.isAdmin ? `<td>
                     loadFolderClaims()
                     closePopup('folderClaimPopup')
                 } else {
-                    alert("Error while deleting folderClaim")
+                    error("Error while deleting folderClaim", response)
                 }
             })
         }
@@ -494,7 +506,7 @@ ${me_data && me_data.isAdmin ? `<td>
                     loadSlugs()
                     closePopup('slugPopup')
                 } else {
-                    alert("Error while deleting slug")
+                    error("Error while deleting slug", response)
                 }
             })
         }
@@ -533,7 +545,7 @@ ${me_data && me_data.isAdmin ? `<td>
                     closePopup('slugPopup')
                     loadSlugs()
                 } else {
-                    alert("An error occurred while creating")
+                    error("An error occurred while creating", response)
                 }
             })
         }
@@ -547,8 +559,7 @@ ${me_data && me_data.isAdmin ? `<td>
                     closePopup('slugPopup')
                     loadSlugs()
                 } else {
-                    alert("An error occurred while creating")
-                    
+                    error("An error occurred while creating", response)
                 }
             })
         }
