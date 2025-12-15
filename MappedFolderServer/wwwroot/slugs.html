@@ -576,7 +576,7 @@ ${me_data && me_data.isAdmin ? `<td>
             })
         }
 
-        function saveSlug() {
+        function saveSlug(e) {
             const slug = {
                 folderPath: slugFolder.value,
                 isPublic: slugPublic.checked == true,
