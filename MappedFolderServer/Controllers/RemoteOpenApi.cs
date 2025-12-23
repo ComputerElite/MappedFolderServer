@@ -91,11 +91,11 @@ public class RemoteOpenApi : Controller
 
     [HttpGet("all")]
     [Authorize("user")]
-    public async Task<IActionResult> All()
+    public async Task<IActionResult> All([FromQuery] bool userOnly = false)
     {
         User? user = _currentUser.GetCurrentUser();
         if (user == null) return Unauthorized();
-        if (user.IsAdmin)
+        if (user.IsAdmin && !userOnly)
         {
             return Ok(_db.RemoteOpenData.ToList());
         }

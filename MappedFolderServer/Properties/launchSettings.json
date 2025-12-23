@@ -10,8 +10,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "UseOAuth": false,
         "OAuthAuthority": "http://localhost:9000/application/o/mfs/",
-        "OAuthClientId": "Y05hEioU5gmnCuqUpuCHqVaBJzMNrQeH6ZnJE9oB",
-        "OAuthClientSecret": "Ya2RCvF9FPJH81tut3aZnfTrfllT8PA29Ye5yl9UKWrPWLpbRKAKLz34veT6kK0nCVeZ2UeeH0NpnUpOvAVHWTPDNY3orjg9tqAAs3ODkhhPS7hDCR2iKT1X3sETxVtK",
+        "OAuthClientId": "aWbAMMHb9Qh1rdeN8xsKkfMtWlwdjYUxiu9bCLCc",
+        "OAuthClientSecret": "4ts5ynwoGorKku4VWuNVN52xUl2ZFAisL4IzMFldqNjpG3OzYck7jx82WfuLA7CaRRhTxUW65ALI8piTSM9WMSoGjgKehBLacA7WWSStG9JxZezluS3b0iD3qa4hMdEY",
         "EncryptionKey": ",md?>'?wewCfv{l</IkK04^r_LEclO-A",
         "DownloadFeatureEnabled": true
       }

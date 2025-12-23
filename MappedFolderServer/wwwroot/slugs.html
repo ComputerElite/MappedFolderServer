@@ -356,7 +356,7 @@ window.location.href = '${getLink()}'
         }
 
         function loadRemoteOpens() {
-            fetch("/api/v1/remotes/all").then(res => {
+            fetch(`/api/v1/remotes/all?userOnly=${userOnly}`).then(res => {
                 res.json().then(data => {
                     remoteOpen_list = data
                     showRemoteOpens()
@@ -492,7 +492,7 @@ ${me_data && me_data.isAdmin ? `<td>
         }
         
         function loadFolderClaims() {
-            fetch("/api/v1/folders/all").then(res => {
+            fetch(`/api/v1/folders/all?userOnly=${userOnly}`).then(res => {
                 res.json().then(data => {
                     folderClaim_list = data
                     showFolderClaims()
@@ -514,7 +514,7 @@ ${me_data && me_data.isAdmin ? `<td>
         }
         
         function loadUsers() {
-            fetch(`/api/v1/users/all`).then(res => {
+            fetch(`/api/v1/users/all?userOnly=${userOnly}`).then(res => {
                 if (!res.ok) {
                     return
                 }
@@ -734,7 +734,7 @@ ${me_data && me_data.isAdmin ? `<td>
         }
         
         async function loadSlugs(){
-            await fetch("/api/v1/slugs/all").then(response => {
+            await fetch(`/api/v1/slugs/all?userOnly=${userOnly}`).then(response => {
                 response.json().then(data => {
                     slug_list = data
                     updateView()

@@ -25,11 +25,11 @@ public class SlugApi : Controller
     }
 
     [HttpGet("all")]
-    public IActionResult GetAll()
+    public IActionResult GetAll([FromQuery] bool userOnly = false)
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        if (loggedInUser.IsAdmin)
+        if (loggedInUser.IsAdmin && !userOnly)
         {
             return Ok(_db.Slugs.Include(x => x.Repo).ToList());
         }

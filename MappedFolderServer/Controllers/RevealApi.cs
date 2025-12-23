@@ -20,11 +20,11 @@ public class RevealApi : Controller
 
     [HttpGet("remotes")]
     [Authorize("user")]
-    public IActionResult All()
+    public IActionResult All([FromQuery] bool userOnly = false)
     {
         User? loggedInUser = _currentUser.GetCurrentUser();
         if (loggedInUser == null) return Unauthorized();
-        if (loggedInUser.IsAdmin)
+        if (loggedInUser.IsAdmin && !userOnly)
         {
             return Ok(_db.Reveal.OrderByDescending(x => x.Created).ToList());
         }
