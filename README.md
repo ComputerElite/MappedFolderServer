@@ -18,6 +18,26 @@ Therefore, I want to host my presentations online so I can remotely control them
 
 Presentations shouldn't be accessed by third parties unless I explicitly want to. But I still want to manage them via a coherent file structure.
 
+## Recommended action after setup
+Add the [MappedFolderServer-public](https://github.com/ComputerElite/MappedFolderServer-public) repo as slug under `/public/` and mark them as public. This way many files required for Reveal.js will be present for all presentations to access centrally.
+
+For local usage of Reveal.js I use following setup:
+
+```
+- ~/Documents/presentations/:
+    |-- public (repo from https://github.com/ComputerElite/MappedFolderServer-public) 
+    |-- presentation1
+    |    |-- index.html (presentation 1 including all relevant files from /public)
+    |-- presentation2
+         |-- index.html (presentation 1 including all relevant files from /public)
+         |-- assets
+              |-- pic1.webp
+```
+
+Then using Live Server or Five server within vscodium I open the presentations folder to check my presentations.
+
+The presentations are synced using syncthing to my mfs host
+
 ## Deploy using docker/podman compose
 I provide 2 compose files for usage:
 - `compose.example.yaml`: Allows deployment via prebuilt images
