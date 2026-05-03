@@ -1,4 +1,5 @@
-# MappedFolderServer
+> [!WARNING]
+> This repository has moved to Codeberg: https://codeberg.org/kaiya/MappedFolderServer # MappedFolderServer
 A server made primarily to serve reveal.js presentations.
 
 ## Features
